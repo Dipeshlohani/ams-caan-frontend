@@ -1,15 +1,11 @@
-import ApolloClient from 'apollo-client'
-import { ApolloProvider } from '@apollo/react-hooks'
-import { InMemoryCache } from 'apollo-cache-inmemory'
-import { createHttpLink } from 'apollo-link-http'
-
-const httpLink = createHttpLink({
-  uri: 'http://localhost:3005/graphql' // Replace with your GraphQL server URL
-})
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client'
 
 const client = new ApolloClient({
-  link: httpLink,
-  cache: new InMemoryCache()
+  uri: 'http://localhost:3005/graphql',
+  cache: new InMemoryCache(),
+  link: new HttpLink({
+    uri: 'http://localhost:3005/graphql'
+  })
 })
 
 export default client
