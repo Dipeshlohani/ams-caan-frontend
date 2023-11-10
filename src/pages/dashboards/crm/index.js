@@ -22,6 +22,13 @@ import CrmStatisticsCard from 'src/views/dashboards/crm/CrmStatisticsCard'
 import CrmMeetingSchedule from 'src/views/dashboards/crm/CrmMeetingSchedule'
 import CrmDeveloperMeetup from 'src/views/dashboards/crm/CrmDeveloperMeetup'
 import CrmActivityTimeline from 'src/views/dashboards/crm/CrmActivityTimeline'
+import CardTwitter from 'src/views/ui/cards/basic/CardTwitter'
+
+import { useState, useEffect } from 'react'
+import gql from 'graphql-tag'
+
+import CardActivity from 'src/views/ui/cards/basic/CardActivity'
+import { useQuery } from '@apollo/react-hooks'
 
 const data = [
   {
@@ -43,17 +50,42 @@ const data = [
   }
 ]
 
-const CRMDashboard = () => {
+const LIST_ACTIVITIES = gql`
+  query {
+    activities {
+      _id
+      title
+      description
+    }
+  }
+`
+
+const CRMDashboard = ({}) => {
+  const { loading, error, data } = useQuery(LIST_ACTIVITIES)
+
+  if (loading) return <p>Loading...</p>
+  if (error) return <p>Error: {error.message}</p>
+
+  const activities = data.activities
+  console.log(activities)
+
   return (
     <ApexChartWrapper>
       <Grid container spacing={6}>
-        <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
+        {/* <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
           <CardStatisticsCharacter data={data[0]} />
         </Grid>
         <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
           <CardStatisticsCharacter data={data[1]} />
+        </Grid> */}
+        <Grid item xs={12}>
+          <CardActivity />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
+          <CardActivity />
+        </Grid>
+
+        {/* <Grid item xs={12} md={6}>
           <CrmStatisticsCard />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -100,7 +132,7 @@ const CRMDashboard = () => {
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
           <CrmDeveloperMeetup />
-        </Grid>
+        </Grid> */}
       </Grid>
     </ApexChartWrapper>
   )
