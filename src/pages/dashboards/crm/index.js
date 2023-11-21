@@ -1,54 +1,11 @@
-import { useState, useEffect } from 'react'
-// ** MUI Imports
+import React, { useState, useEffect } from 'react'
 import Grid from '@mui/material/Grid'
-
-// ** Icons Imports
-import BriefcaseVariantOutline from 'mdi-material-ui/BriefcaseVariantOutline'
-
-// ** Custom Components Imports
-import CardStatisticsCharacter from 'src/@core/components/card-statistics/card-stats-with-image'
-import CardStatisticsVerticalComponent from 'src/@core/components/card-statistics/card-stats-vertical'
-
-// ** Styled Component Import
-import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
-
-// ** Demo Components Imports
-import CrmTotalSales from 'src/views/dashboards/crm/CrmTotalSales'
-import CrmWeeklySales from 'src/views/dashboards/crm/CrmWeeklySales'
-import CrmTotalGrowth from 'src/views/dashboards/crm/CrmTotalGrowth'
-import CrmUpgradePlan from 'src/views/dashboards/crm/CrmUpgradePlan'
-import CrmRevenueReport from 'src/views/dashboards/crm/CrmRevenueReport'
-import CrmSalesOverview from 'src/views/dashboards/crm/CrmSalesOverview'
-import CrmStatisticsCard from 'src/views/dashboards/crm/CrmStatisticsCard'
-import CrmMeetingSchedule from 'src/views/dashboards/crm/CrmMeetingSchedule'
-import CrmDeveloperMeetup from 'src/views/dashboards/crm/CrmDeveloperMeetup'
-import CrmActivityTimeline from 'src/views/dashboards/crm/CrmActivityTimeline'
-import CardTwitter from 'src/views/ui/cards/basic/CardTwitter'
-
 import CardActivity from 'src/views/ui/cards/basic/CardActivity'
-
-const data = [
-  {
-    stats: '13.7k',
-    title: 'Ratings',
-    trendNumber: '+38%',
-    chipColor: 'primary',
-    chipText: 'Year of 2022',
-    src: '/images/cards/pose_f9.png'
-  },
-  {
-    stats: '24.5k',
-    trend: 'negative',
-    title: 'Sessions',
-    trendNumber: '-22%',
-    chipText: 'Last Week',
-    chipColor: 'secondary',
-    src: '/images/cards/pose_m18.png'
-  }
-]
+import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 import { gql } from '@apollo/react-hooks'
 import client from '../../../../apollo-client'
+import ActivityForm from '../../components/activity/ActivityForm'
 
 const GET_ACTIVITIES = gql`
   {
@@ -61,77 +18,97 @@ const GET_ACTIVITIES = gql`
   }
 `
 
-const CRMDashboard = ({}) => {
-  const [activity, setActivity] = useState([])
+const GET_COMMENTS_BY_ACTIVITY = gql`
+  query GetCommentsByActivity($activityId: ID!) {
+    commentsByActivity(activityId: $activityId) {
+      _id
+      content
+      userId
+      activityId
+    }
+  }
+`
 
-  client
-    .query({ query: GET_ACTIVITIES })
-    .then(result => setActivity(result.data.activities))
-    .catch(error => console.error('Apollo Client Error:', error))
+const CRMDashboard = () => {
+  const [activities, setActivities] = useState([])
+  const [selectedActivity, setSelectedActivity] = useState(null)
+  const [comments, setComments] = useState([])
+
+  useEffect(() => {
+    // Fetch activities
+    client
+      .query({ query: GET_ACTIVITIES })
+      .then(result => {
+        console.log('Fetched activities:', result.data.activities)
+        setActivities(result.data.activities)
+      })
+      .catch(error => console.error('Apollo Client Error:', error))
+  }, [])
+
+  // Log selectedActivity and comments whenever they change
+  useEffect(() => {
+    console.log('Selected Activity:', selectedActivity)
+
+    // Fetch comments for the selected activity
+    if (selectedActivity) {
+      client
+        .query({
+          query: GET_COMMENTS_BY_ACTIVITY,
+          variables: { activityId: selectedActivity._id }
+        })
+        .then(result => {
+          console.log('Fetched comments result:', result)
+          console.log('Fetched comments data:', result.data)
+          setComments(result.data.commentsByActivity)
+        })
+        .catch(error => console.error('Apollo Client Error:', error))
+    }
+  }, [selectedActivity])
+
+  useEffect(() => {
+    console.log('Comments:', comments)
+  }, [comments])
+
+  const handleAddActivity = newActivity => {
+    setActivities(prevActivities => [...prevActivities, newActivity])
+  }
 
   return (
     <ApexChartWrapper>
-      <Grid container spacing={6}>
-        {/* <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
-          <CardStatisticsCharacter data={data[0]} />
+              <Grid item xs={12}>
+          <ActivityForm onAddActivity={handleAddActivity} />
         </Grid>
-        <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
-          <CardStatisticsCharacter data={data[1]} />
-        </Grid> */}
-        {activity.map((item, index) => (
-          <Grid key={index} item xs={12}>
-            <CardActivity activity={item} />
+      <Grid container spacing={6}>
+        {/* Display activities */}
+        {activities.map(activity => (
+          <Grid key={activity._id} item xs={12}>
+            <CardActivity
+              activity={activity}
+              onClick={() => {
+                // Set the selected activity
+                setSelectedActivity(activity)
+              }}
+            />
           </Grid>
         ))}
 
-        {/* <Grid item xs={12} md={6}>
-          <CrmStatisticsCard />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <CrmTotalSales />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <CrmRevenueReport />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <CrmSalesOverview />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <CrmActivityTimeline />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Grid container spacing={6}>
-            <Grid item xs={12} sm={8}>
-              <CrmWeeklySales />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Grid container spacing={6}>
-                <Grid item xs={6} sm={12}>
-                  <CrmTotalGrowth />
-                </Grid>
-                <Grid item xs={6} sm={12}>
-                  <CardStatisticsVerticalComponent
-                    stats='862'
-                    trend='negative'
-                    trendNumber='-18%'
-                    title='New Project'
-                    subtitle='Yearly Project'
-                    icon={<BriefcaseVariantOutline />}
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
+        {/* Display comments for the selected activity */}
+        {selectedActivity && (
+          <Grid item xs={12}>
+            <div>
+              <h3>Comments for {selectedActivity.title}</h3>
+              {comments.map(comment => (
+                <div key={comment._id}>
+                  <p>{comment.content}</p>
+                  {/* Add more comment details as needed */}
+                </div>
+              ))}
+            </div>
           </Grid>
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <CrmUpgradePlan />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <CrmMeetingSchedule />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <CrmDeveloperMeetup />
-        </Grid> */}
+        )}
+
+        {/* Add the form to add new activities */}
+
       </Grid>
     </ApexChartWrapper>
   )

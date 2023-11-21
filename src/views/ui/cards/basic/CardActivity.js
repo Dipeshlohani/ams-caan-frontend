@@ -4,53 +4,77 @@ import Card from '@mui/material/Card'
 import Avatar from '@mui/material/Avatar'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
+import IconButton from '@mui/material/IconButton'
+import { styled } from '@mui/system'
 
 // ** Icons Imports
-import Heart from 'mdi-material-ui/Heart'
-import Comment from 'mdi-material-ui/Comment'
-import Twitter from 'mdi-material-ui/Twitter'
-import ShareVariant from 'mdi-material-ui/ShareVariant'
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import CommentIcon from '@mui/icons-material/ModeCommentOutlined'
+import ShareIcon from '@mui/icons-material/Share'
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  backgroundColor: '#fff',
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[3],
+  width: '900px',
+  margin: 'auto',
+  '&:hover': {
+    boxShadow: theme.shadows[6]
+  }
+}))
+
+const StyledCardContent = styled(CardContent)(({ theme }) => ({
+  padding: theme.spacing(2),
+  '&:last-child': {
+    paddingBottom: theme.spacing(2)
+  }
+}))
 
 const CardActivity = ({ activity }) => {
   return (
-    <Card sx={{ border: 0, boxShadow: 0, color: 'common.white', backgroundColor: 'info.main' }}>
-      <CardContent sx={{ p: theme => `${theme.spacing(3.25, 5, 4.5)} !important` }}>
-        <Typography variant='h6' sx={{ display: 'flex', mb: 2.75, alignItems: 'center', color: 'common.white' }}>
-          {activity.title}
-        </Typography>
-        <Typography variant='body2' sx={{ mb: 3, color: 'common.white' }}>
-          {activity.description}
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
-            <Avatar alt='Mary Vaughn' src='/images/avatars/4.png' sx={{ width: 34, height: 34, mr: 2.75 }} />
-            <Typography variant='body2' sx={{ color: 'common.white' }}>
+    <StyledCard>
+      <StyledCardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+          <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1 }} />
+          <Box>
+            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
               {activity.userId}
             </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mr: 3.5 }}>
-              <Heart sx={{ mr: 1.25 }} />
-              <Typography variant='body2' sx={{ color: 'common.white' }}>
-                1.2k
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', mr: 3.5 }}>
-              <Comment sx={{ mr: 1.25 }} />
-              <Typography variant='body2' sx={{ color: 'common.white' }}>
-                1.2k
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <ShareVariant sx={{ mr: 1.25 }} />
-              <Typography variant='body2' sx={{ color: 'common.white' }}>
-                80
-              </Typography>
-            </Box>
+            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1 }}>
+              {activity.title}
+            </Typography>
           </Box>
         </Box>
-      </CardContent>
-    </Card>
+        <Typography variant='body1' sx={{ mb: 1.5 }}>
+          {activity.description}
+        </Typography>
+        {/* Add a place for the image here */}
+        <img
+          src='/images/avatars/4.png'
+          alt={activity.userId}
+          style={{ margin: 0 , width: '70%',height:'160px', marginBottom: '1.5rem', borderRadius: '8px' }}
+        />
+        <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+          <IconButton size='small'>
+            <FavoriteIcon sx={{ fontSize: 18, color: 'error.main' }} />
+          </IconButton>
+          <Typography variant='body2' sx={{ mr: 2 }}>
+            1.2k
+          </Typography>
+          <IconButton size='small'>
+            <CommentIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography variant='body2' sx={{ mr: 2 }}>
+            1.2k
+          </Typography>
+          <IconButton size='small'>
+            <ShareIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography variant='body2'>80</Typography>
+        </Box>
+      </StyledCardContent>
+    </StyledCard>
   )
 }
 
