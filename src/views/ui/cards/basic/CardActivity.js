@@ -1,4 +1,4 @@
-// ** MUI Imports
+import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Avatar from '@mui/material/Avatar'
@@ -8,7 +8,6 @@ import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/system'
 import CommentForm from '../../../../pages/components/activity/CommentForm'
 import ReactionForm from '../../../../pages/components/activity/ReactionComponent'
-// ** Icons Imports
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import CommentIcon from '@mui/icons-material/ModeCommentOutlined'
 import ShareIcon from '@mui/icons-material/Share'
@@ -51,6 +50,23 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments }) => 
     console.log('New reaction:', newReaction)
   }
 
+  const [commentFormVisible, setCommentFormVisible] = useState(false)
+  const [reactionFormVisible, setReactionFormVisible] = useState(false)
+
+  const handleCommentButtonClick = () => {
+    // Toggle the visibility of the comment form
+    setCommentFormVisible(prevState => !prevState)
+    // Hide the reaction form when showing the comment form
+    setReactionFormVisible(false)
+  }
+
+  const handleReactionButtonClick = () => {
+    // Toggle the visibility of the reaction form
+    setReactionFormVisible(prevState => !prevState)
+    // Hide the comment form when showing the reaction form
+    setCommentFormVisible(false)
+  }
+
   return (
     <StyledCard>
       <StyledCardContent>
@@ -75,13 +91,13 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments }) => 
           style={{ margin: 0, width: '70%', height: '160px', marginBottom: '1.5rem', borderRadius: '8px' }}
         />
         <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
-          <IconButton size='small'>
+          <IconButton size='small' onClick={handleReactionButtonClick}>
             <FavoriteIcon sx={{ fontSize: 18, color: 'error.main' }} />
           </IconButton>
           <Typography variant='body2' sx={{ mr: 2 }}>
             1.2k
           </Typography>
-          <IconButton size='small'>
+          <IconButton size='small' onClick={handleCommentButtonClick}>
             <CommentIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <Typography variant='body2' sx={{ mr: 2 }}>
@@ -92,19 +108,23 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments }) => 
           </IconButton>
           <Typography variant='body2'>80</Typography>
         </Box>
-        {/* Display ReactionsComponent */}
-        <ReactionForm
-          onAddReaction={handleAddReaction}
-          activityId={activity._id}
-          userId='user123' // Replace with the actual user ID or fetch it dynamically
-        />
+        {/* Display ReactionForm */}
+        {reactionFormVisible && (
+          <ReactionForm
+            onAddReaction={handleAddReaction}
+            activityId={activity._id}
+            userId='12345' // Replace with the actual user ID or fetch it dynamically
+          />
+        )}
 
         {/* Display CommentForm */}
-        <CommentForm
-          onAddComment={handleAddComment}
-          activityId={activity._id}
-          userId='user123' // Replace with the actual user ID or fetch it dynamically
-        />
+        {commentFormVisible && (
+          <CommentForm
+            onAddComment={handleAddComment}
+            activityId={activity._id}
+            userId='user1236785' // Replace with the actual user ID or fetch it dynamically
+          />
+        )}
 
         {/* Display comments */}
         {filteredComments.length > 0 && (

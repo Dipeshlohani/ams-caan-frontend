@@ -45,14 +45,26 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
       const userReaction = data.reactionsByActivity.find(reaction => reaction.userId === userId)
 
       if (userReaction) {
-        // User has already reacted, so delete the existing reaction
-        console.log('Deleting existing reaction:', userReaction)
-        await deleteReaction({
-          variables: { reactionId: userReaction._id },
-          refetchQueries: [{ query: REACTIONS_BY_ACTIVITY, variables: { activityId } }]
-        })
+        if (userReaction.type === selectedType) {
+          // User clicked the same reaction type, so delete the existing reaction
+          console.log('Deleting existing reaction:', userReaction)
+          await deleteReaction({
+            variables: { reactionId: userReaction._id },
+            refetchQueries: [{ query: REACTIONS_BY_ACTIVITY, variables: { activityId } }]
+          })
 
-        console.log('Reaction deleted')
+          console.log('Reaction deleted')
+          return // Do not proceed to create a new reaction
+        } else {
+          // User clicked a different reaction type, so delete the existing reaction
+          console.log('Deleting existing reaction:', userReaction)
+          await deleteReaction({
+            variables: { reactionId: userReaction._id },
+            refetchQueries: [{ query: REACTIONS_BY_ACTIVITY, variables: { activityId } }]
+          })
+
+          console.log('Reaction deleted')
+        }
       }
 
       // Create a new reaction
@@ -64,7 +76,7 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
 
       console.log('Create response:', reactionData)
 
-      // Notify parent component about the new reaction
+      // Notify the parent component about the new reaction
       onAddReaction(reactionData.createReaction)
       console.log(`${selectedType} added`)
     } catch (error) {
