@@ -45,13 +45,15 @@ const ReactionFormContainer = styled(Box)(({ theme }) => ({
 
 const ReactionListContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: '70px', // Adjust this value as needed
-  left: 0,
+  top: '-20px', // Adjust this value to control the overlap
+  left: '50%', // Center the Reaction List
+  transform: 'translateX(-50%)', // Center the Reaction List
   zIndex: 1000, // Set a higher zIndex value
   backgroundColor: theme.palette.background.paper,
   padding: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
-  boxShadow: theme.shadows[3]
+  boxShadow: theme.shadows[3],
+  width: '200px' // Adjust the width as needed
 }))
 
 const CardActivity = ({ activity, selectedActivity, comments, setComments }) => {
@@ -113,8 +115,6 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments }) => 
       document.removeEventListener('mousedown', handleClickOutsideReactionList)
     }
   }, [])
-
-  
 
   return (
     <StyledCard>
@@ -186,13 +186,16 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments }) => 
             ))}
           </div>
         )}
-        {reactionListVisible && (
-          <ReactionListContainer ref={reactionListRef}>
-            {/* Render the ReactionList component here */}
-            {/* Pass necessary props like activityId, userId, etc. */}
-            <ReactionList activityId={activity._id} userId='12345' />
-          </ReactionListContainer>
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5, position: 'relative' }}>
+          {/* ... (existing code) */}
+          {reactionListVisible && (
+            <ReactionListContainer ref={reactionListRef}>
+              {/* Render the ReactionList component here */}
+              {/* Pass necessary props like activityId, userId, etc. */}
+              <ReactionList activityId={activity._id} userId='12345' />
+            </ReactionListContainer>
+          )}
+        </Box>
       </StyledCardContent>
     </StyledCard>
   )
