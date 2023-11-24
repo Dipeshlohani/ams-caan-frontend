@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Avatar from '@mui/material/Avatar'
@@ -11,6 +11,7 @@ import ReactionForm from '../../../../pages/components/activity/ReactionComponen
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import CommentIcon from '@mui/icons-material/ModeCommentOutlined'
 import ShareIcon from '@mui/icons-material/Share'
+import ReactionList from '../../../../pages/components/activity/ReactionList'
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -31,46 +32,94 @@ const StyledCardContent = styled(CardContent)(({ theme }) => ({
   }
 }))
 
-const CardActivity = ({ activity, selectedActivity, comments, setComments }) => {
-  // Filter comments by activity ID
-  const filteredComments = comments.filter(comment => comment.activityId === activity._id)
+const ReactionFormContainer = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: '70px', // Adjust this value as needed
+  left: 0,
+  zIndex: 1,
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[3]
+}))
 
-  // Calculate the total number of comments for this activity
+const ReactionListContainer = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: '70px', // Adjust this value as needed
+  left: 0,
+  zIndex: 1000, // Set a higher zIndex value
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[3]
+}))
+
+const CardActivity = ({ activity, selectedActivity, comments, setComments }) => {
+  const filteredComments = comments.filter(comment => comment.activityId === activity._id)
   const totalComments = filteredComments.length
 
-  // Function to handle comment submission
   const handleAddComment = newComment => {
-    // Update the comments state using setComments
     setComments(prevComments => [...prevComments, newComment])
   }
 
   const handleAddReaction = newReaction => {
-    // Handle the reaction as needed
-    // You can update the state or perform any other actions
     console.log('New reaction:', newReaction)
   }
 
   const [commentFormVisible, setCommentFormVisible] = useState(false)
   const [reactionFormVisible, setReactionFormVisible] = useState(false)
+  const [reactionListVisible, setReactionListVisible] = useState(false)
+
+  const reactionListRef = useRef()
 
   const handleCommentButtonClick = () => {
-    // Toggle the visibility of the comment form
     setCommentFormVisible(prevState => !prevState)
-    // Hide the reaction form when showing the comment form
     setReactionFormVisible(false)
+    setReactionListVisible(false)
   }
 
   const handleReactionButtonClick = () => {
-    // Toggle the visibility of the reaction form
     setReactionFormVisible(prevState => !prevState)
-    // Hide the comment form when showing the reaction form
     setCommentFormVisible(false)
+    // Toggle the visibility of the reaction list
+    setReactionListVisible(prevState => !prevState)
   }
+
+  const handleMouseEnter = () => {
+    setReactionFormVisible(true)
+  }
+
+  const handleMouseLeave = () => {
+    setReactionFormVisible(false)
+  }
+
+  const handleReactionNumberOnClick = () => {
+    // Toggle the visibility of the reaction list
+    setReactionListVisible(prevState => !prevState)
+  }
+
+  const handleClickOutsideReactionList = event => {
+    if (reactionListRef.current && !reactionListRef.current.contains(event.target)) {
+      setReactionListVisible(false)
+    }
+  }
+
+  useEffect(() => {
+    // Add event listener when the component mounts
+    document.addEventListener('mousedown', handleClickOutsideReactionList)
+
+    // Remove event listener when the component unmounts
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideReactionList)
+    }
+  }, [])
+
+  
 
   return (
     <StyledCard>
       <StyledCardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5, position: 'relative' }}>
           <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1 }} />
           <Box>
             <Typography variant='body2' sx={{ color: 'text.secondary' }}>
@@ -80,11 +129,23 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments }) => 
               {activity.title}
             </Typography>
           </Box>
+          {reactionFormVisible && (
+            <ReactionFormContainer onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+              <ReactionForm onAddReaction={handleAddReaction} activityId={activity._id} userId='12345' />
+            </ReactionFormContainer>
+          )}
+
+          {reactionListVisible && (
+            <ReactionListContainer ref={reactionListRef}>
+              {/* Render the ReactionList component here */}
+              {/* Pass necessary props like activityId, userId, etc. */}
+              <ReactionList activityId={activity._id} userId='12345' />
+            </ReactionListContainer>
+          )}
         </Box>
         <Typography variant='body1' sx={{ mb: 1.5 }}>
           {activity.description}
         </Typography>
-        {/* Add a place for the image here */}
         <img
           src='/images/avatars/4.png'
           alt={activity.userId}
@@ -92,51 +153,45 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments }) => 
         />
         <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
           <IconButton size='small' onClick={handleReactionButtonClick}>
-            <FavoriteIcon sx={{ fontSize: 18, color: 'error.main' }} />
+            <FavoriteIcon
+              sx={{ fontSize: 18, color: 'error.main' }}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            />
           </IconButton>
-          <Typography variant='body2' sx={{ mr: 2 }}>
+          <Typography variant='body2' sx={{ mr: 2 }} onClick={handleReactionNumberOnClick}>
             1.2k
           </Typography>
           <IconButton size='small' onClick={handleCommentButtonClick}>
             <CommentIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <Typography variant='body2' sx={{ mr: 2 }}>
-            {totalComments} {/* Display the total number of comments */}
+            {totalComments}
           </Typography>
           <IconButton size='small'>
             <ShareIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <Typography variant='body2'>80</Typography>
         </Box>
-        {/* Display ReactionForm */}
-        {reactionFormVisible && (
-          <ReactionForm
-            onAddReaction={handleAddReaction}
-            activityId={activity._id}
-            userId='12345' // Replace with the actual user ID or fetch it dynamically
-          />
-        )}
-
-        {/* Display CommentForm */}
         {commentFormVisible && (
-          <CommentForm
-            onAddComment={handleAddComment}
-            activityId={activity._id}
-            userId='user1236785' // Replace with the actual user ID or fetch it dynamically
-          />
+          <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='user1236785' />
         )}
-
-        {/* Display comments */}
         {filteredComments.length > 0 && (
           <div>
             <h3>Comments</h3>
             {filteredComments.map(comment => (
               <div key={comment._id}>
                 <p>{comment.content}</p>
-                {/* Add more comment details as needed */}
               </div>
             ))}
           </div>
+        )}
+        {reactionListVisible && (
+          <ReactionListContainer ref={reactionListRef}>
+            {/* Render the ReactionList component here */}
+            {/* Pass necessary props like activityId, userId, etc. */}
+            <ReactionList activityId={activity._id} userId='12345' />
+          </ReactionListContainer>
         )}
       </StyledCardContent>
     </StyledCard>

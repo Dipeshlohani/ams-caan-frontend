@@ -124,20 +124,6 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
           </Button>
         </Paper>
       </Grid>
-
-      {/* Display reactions */}
-      {reactions.length > 0 && (
-        <div>
-          <h3>Reactions</h3>
-          {reactions.map(reaction => (
-            <div key={reaction._id}>
-              <p>User ID: {reaction.userId}</p>
-              <p>{reaction.type}</p>
-              {/* Add more reaction details as needed */}
-            </div>
-          ))}
-        </div>
-      )}
     </Grid>
   )
 }
