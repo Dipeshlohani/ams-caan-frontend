@@ -15,20 +15,24 @@ const CREATE_COMMENT = gql`
   }
 `
 
+// Updated query to fetch comments
 const GET_COMMENTS = gql`
   query CommentsByActivity($activityId: String!) {
     commentsByActivity(activityId: $activityId) {
-      _id
-      content
-      userId
-      activityId
+      comments {
+        _id
+        userId
+        activityId
+        content
+      }
+      totalComments
     }
   }
 `
 
 const CommentForm = ({ onAddComment, activityId, userId }) => {
   const [content, setContent] = useState('')
-  const { loading, error, data } = useQuery(GET_COMMENTS, {
+  const { loading, error, data, refetch } = useQuery(GET_COMMENTS, {
     variables: { activityId }
   })
 
@@ -56,7 +60,7 @@ const CommentForm = ({ onAddComment, activityId, userId }) => {
   if (loading) return <p>Loading comments...</p>
   if (error) return <p>Error loading comments: {error.message}</p>
 
-  const comments = data.commentsByActivity
+  const { comments, totalComments } = data.commentsByActivity
 
   return (
     <Grid container justifyContent='center' padding='30px'>
@@ -83,9 +87,10 @@ const CommentForm = ({ onAddComment, activityId, userId }) => {
       {/* Display comments */}
       {comments.length > 0 && (
         <div>
-          <h3>Comments</h3>
+          <h3>Comments ({totalComments})</h3>
           {comments.map(comment => (
             <div key={comment._id}>
+              <p>User ID: {comment.userId}</p>
               <p>{comment.content}</p>
               {/* Add more comment details as needed */}
             </div>

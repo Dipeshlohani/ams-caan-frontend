@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import { useMutation, useQuery } from '@apollo/react-hooks'
+import { useQuery } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
-import { Button, Grid, Paper, gridClasses } from '@mui/material'
+import { Grid } from '@mui/material'
 
 const REACTIONS_BY_ACTIVITY = gql`
   query ReactionsByActivity($activityId: String!) {
     reactionsByActivity(activityId: $activityId) {
-      _id
-      userId
-      activityId
-      type
+      reactions {
+        _id
+        userId
+        activityId
+        type
+      }
+      totalReactions
     }
   }
 `
@@ -22,20 +25,32 @@ const ReactionList = ({ activityId, userId }) => {
   useEffect(() => {
     // Refetch reactions when activityId or userId changes
     if (activityId && userId) {
-      refetch({ activityId }).catch(error => console.error('Error refetching reactions:', error))
+      refetch({ activityId })
+        .then(() => console.log('Reactions refetched successfully.'))
+        .catch(error => console.error('Error refetching reactions:', error))
     }
   }, [activityId, userId, refetch])
 
   if (loading) return <p>Loading reactions...</p>
-  if (error) return <p>Error loading reactions: {error.message}</p>
 
-  const reactions = data.reactionsByActivity
+  if (error) {
+    console.error('Error loading reactions:', error.message)
+    return <p>Error loading reactions: {error.message}</p>
+  }
+
+  if (!data || !data.reactionsByActivity) {
+    console.log('No data or reactions found.')
+    return <p>No reactions found.</p>
+  }
+
+  const { reactions, totalReactions } = data.reactionsByActivity
+
   return (
     <Grid>
       {/* Display reactions */}
       {reactions.length > 0 && (
         <div>
-          <h3>Reactions</h3>
+          <h3>Reactions ({totalReactions})</h3>
           {reactions.map(reaction => (
             <div key={reaction._id}>
               <p>User ID: {reaction.userId}</p>

@@ -23,10 +23,13 @@ const DELETE_REACTION = gql`
 const REACTIONS_BY_ACTIVITY = gql`
   query ReactionsByActivity($activityId: String!) {
     reactionsByActivity(activityId: $activityId) {
-      _id
-      userId
-      activityId
-      type
+      reactions {
+        _id
+        userId
+        activityId
+        type
+      }
+      totalReactions
     }
   }
 `

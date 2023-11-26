@@ -160,7 +160,7 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments }) => 
             />
           </IconButton>
           <Typography variant='body2' sx={{ mr: 2 }} onClick={handleReactionNumberOnClick}>
-            1.2k
+           {totalReactions}
           </Typography>
           <IconButton size='small' onClick={handleCommentButtonClick}>
             <CommentIcon sx={{ fontSize: 18 }} />
