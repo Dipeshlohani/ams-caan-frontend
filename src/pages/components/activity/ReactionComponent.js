@@ -42,12 +42,17 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
   const [createReaction] = useMutation(CREATE_REACTION)
   const [deleteReaction] = useMutation(DELETE_REACTION)
 
+  const reactionsData = data?.reactionsByActivity || { reactions: [] }
+
   const handleSubmit = async selectedType => {
     try {
+      console.log('Handling reaction:', selectedType)
+
       // Check if the user has already reacted
-      const userReaction = data.reactionsByActivity.find(reaction => reaction.userId === userId)
+      const userReaction = reactionsData.reactions.find(reaction => reaction.userId === userId)
 
       if (userReaction) {
+        // User has already reacted, handle accordingly
         if (userReaction.type === selectedType) {
           // User clicked the same reaction type, so delete the existing reaction
           console.log('Deleting existing reaction:', userReaction)
@@ -55,7 +60,6 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
             variables: { reactionId: userReaction._id },
             refetchQueries: [{ query: REACTIONS_BY_ACTIVITY, variables: { activityId } }]
           })
-
           console.log('Reaction deleted')
           return // Do not proceed to create a new reaction
         } else {
@@ -65,7 +69,6 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
             variables: { reactionId: userReaction._id },
             refetchQueries: [{ query: REACTIONS_BY_ACTIVITY, variables: { activityId } }]
           })
-
           console.log('Reaction deleted')
         }
       }
@@ -95,9 +98,12 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
   }, [activityId, userId, refetch])
 
   if (loading) return <p>Loading reactions...</p>
-  if (error) return <p>Error loading reactions: {error.message}</p>
+  if (error) {
+    console.error('Error loading reactions:', error.message)
+    return <p>Error loading reactions: {error.message}</p>
+  }
 
-  const reactions = data.reactionsByActivity
+  const reactions = reactionsData.reactions
 
   return (
     <Grid container justifyContent='center' padding='30px'>

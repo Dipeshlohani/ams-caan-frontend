@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
-import { Grid } from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 
 const REACTIONS_BY_ACTIVITY = gql`
   query ReactionsByActivity($activityId: String!) {
