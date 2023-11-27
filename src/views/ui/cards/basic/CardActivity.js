@@ -12,6 +12,38 @@ import FavoriteIcon from '@mui/icons-material/Favorite'
 import CommentIcon from '@mui/icons-material/ModeCommentOutlined'
 import ShareIcon from '@mui/icons-material/Share'
 import ReactionList from '../../../../pages/components/activity/ReactionList'
+import { useQuery } from '@apollo/react-hooks' // Import useQuery
+import { gql } from '@apollo/client'
+
+// Define your GraphQL query for comments
+const GET_COMMENTS = gql`
+  query CommentsByActivity($activityId: String!) {
+    commentsByActivity(activityId: $activityId) {
+      comments {
+        _id
+        userId
+        activityId
+        content
+      }
+      totalComments
+    }
+  }
+`
+
+// Define your GraphQL query for reactions
+const GET_REACTIONS = gql`
+  query ReactionsByActivity($activityId: String!) {
+    reactionsByActivity(activityId: $activityId) {
+      reactions {
+        _id
+        userId
+        activityId
+        type
+      }
+      totalReactions
+    }
+  }
+`
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -56,12 +88,28 @@ const ReactionListContainer = styled(Box)(({ theme }) => ({
   width: '200px' // Adjust the width as needed
 }))
 
-const CardActivity = ({ activity, selectedActivity, comments, setComments, totalReactions }) => {
-  const filteredComments = comments.filter(comment => comment.activityId === activity._id)
-  const totalComments = filteredComments.length
+const CardActivity = ({ activity, selectedActivity, setComments }) => {
+  const {
+    loading: commentLoading,
+    error: commentError,
+    data: commentData
+  } = useQuery(GET_COMMENTS, {
+    variables: { activityId: activity._id }
+  })
+
+  const {
+    loading: reactionLoading,
+    error: reactionError,
+    data: reactionData
+  } = useQuery(GET_REACTIONS, {
+    variables: { activityId: activity._id }
+  })
+
+  const filteredComments = commentLoading ? [] : commentData?.commentsByActivity?.comments || []
 
   const handleAddComment = newComment => {
     setComments(prevComments => [...prevComments, newComment])
+    setTotalComments(prevTotalComments => prevTotalComments + 1)
   }
 
   const handleAddReaction = newReaction => {
@@ -71,6 +119,8 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments, total
   const [commentFormVisible, setCommentFormVisible] = useState(false)
   const [reactionFormVisible, setReactionFormVisible] = useState(false)
   const [reactionListVisible, setReactionListVisible] = useState(false)
+  const [totalComments, setTotalComments] = useState(activity.totalComments || 0)
+  const [totalReactions, setTotalReactions] = useState(reactionData?.reactionsByActivity?.totalReactions || 0)
 
   const reactionListRef = useRef()
 
@@ -83,7 +133,6 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments, total
   const handleReactionButtonClick = () => {
     setReactionFormVisible(prevState => !prevState)
     setCommentFormVisible(false)
-    // Toggle the visibility of the reaction list
     setReactionListVisible(prevState => !prevState)
   }
 
@@ -96,7 +145,6 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments, total
   }
 
   const handleReactionNumberOnClick = () => {
-    // Toggle the visibility of the reaction list
     setReactionListVisible(prevState => !prevState)
   }
 
@@ -107,10 +155,19 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments, total
   }
 
   useEffect(() => {
-    // Add event listener when the component mounts
-    document.addEventListener('mousedown', handleClickOutsideReactionList)
+    if (!commentLoading && commentData) {
+      setTotalComments(commentData.commentsByActivity.totalComments)
+    }
+  }, [commentLoading, commentData])
 
-    // Remove event listener when the component unmounts
+  useEffect(() => {
+    if (!reactionLoading && reactionData) {
+      setTotalReactions(reactionData.reactionsByActivity.totalReactions)
+    }
+  }, [reactionLoading, reactionData])
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutsideReactionList)
     return () => {
       document.removeEventListener('mousedown', handleClickOutsideReactionList)
     }
@@ -137,8 +194,6 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments, total
 
           {reactionListVisible && (
             <ReactionListContainer ref={reactionListRef}>
-              {/* Render the ReactionList component here */}
-              {/* Pass necessary props like activityId, userId, etc. */}
               <ReactionList activityId={activity._id} userId='12345' />
             </ReactionListContainer>
           )}
@@ -160,7 +215,7 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments, total
             />
           </IconButton>
           <Typography variant='body2' sx={{ mr: 2 }} onClick={handleReactionNumberOnClick}>
-            1{totalReactions}
+            {totalReactions}
           </Typography>
           <IconButton size='small' onClick={handleCommentButtonClick}>
             <CommentIcon sx={{ fontSize: 18 }} />
@@ -168,30 +223,31 @@ const CardActivity = ({ activity, selectedActivity, comments, setComments, total
           <Typography variant='body2' sx={{ mr: 2 }}>
             {totalComments}
           </Typography>
+
           <IconButton size='small'>
             <ShareIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <Typography variant='body2'>80</Typography>
         </Box>
         {commentFormVisible && (
-          <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='user1236785' />
-        )}
-        {filteredComments.length > 0 && (
           <div>
-            <h3>Comments</h3>
-            {filteredComments.map(comment => (
-              <div key={comment._id}>
-                <p>{comment.content}</p>
+            <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='user1236785' />
+            {filteredComments.length > 0 && (
+              <div>
+                <h3>Comments</h3>
+                {filteredComments.map(comment => (
+                  <div key={comment._id}>
+                    <p>{comment.content}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
+
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5, position: 'relative' }}>
-          {/* ... (existing code) */}
           {reactionListVisible && (
             <ReactionListContainer ref={reactionListRef}>
-              {/* Render the ReactionList component here */}
-              {/* Pass necessary props like activityId, userId, etc. */}
               <ReactionList activityId={activity._id} userId='12345' />
             </ReactionListContainer>
           )}

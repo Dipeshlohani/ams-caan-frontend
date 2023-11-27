@@ -30,7 +30,7 @@ const GET_COMMENTS = gql`
   }
 `
 
-const CommentForm = ({ onAddComment, activityId, userId }) => {
+const CommentForm = ({ onAddComment, activityId, userId, totalComments }) => {
   const [content, setContent] = useState('')
   const { loading, error, data, refetch } = useQuery(GET_COMMENTS, {
     variables: { activityId }
@@ -51,7 +51,7 @@ const CommentForm = ({ onAddComment, activityId, userId }) => {
       setContent('')
 
       // Notify parent component about the new comment
-      onAddComment(commentData.createComment)
+      onAddComment(commentData.createComment, totalComments + 1)
     } catch (error) {
       console.error('Error creating comment:', error)
     }
@@ -60,7 +60,7 @@ const CommentForm = ({ onAddComment, activityId, userId }) => {
   if (loading) return <p>Loading comments...</p>
   if (error) return <p>Error loading comments: {error.message}</p>
 
-  const { comments, totalComments } = data.commentsByActivity
+  const { comments, totalComments: commentsCount } = data.commentsByActivity // Rename to commentsCount
 
   return (
     <Grid container justifyContent='center' padding='30px'>
@@ -87,7 +87,7 @@ const CommentForm = ({ onAddComment, activityId, userId }) => {
       {/* Display comments */}
       {comments.length > 0 && (
         <div>
-          <h3>Comments ({totalComments})</h3>
+          <h3>Comments ({commentsCount})</h3>
           {comments.map(comment => (
             <div key={comment._id}>
               <p>User ID: {comment.userId}</p>
