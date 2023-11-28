@@ -106,8 +106,8 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
   const reactions = reactionsData.reactions
 
   return (
-    <Grid container justifyContent='center' padding='30px'>
-      <Grid item xs={12} sm={8} md={6}>
+    // <Grid container justifyContent='center' padding='30px'>
+    //   <Grid item xs={12} sm={8} md={6}>
         <Paper elevation={3} style={{ padding: '20px' }}>
           <Button
             onClick={() => handleSubmit('LIKE')}
@@ -132,8 +132,8 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
             Angry
           </Button>
         </Paper>
-      </Grid>
-    </Grid>
+    //   </Grid>
+    // </Grid>
   )
 }
 

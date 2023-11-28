@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
-import { Grid, Typography } from '@mui/material'
+import { Grid, Paper, Typography } from '@mui/material'
 
 const REACTIONS_BY_ACTIVITY = gql`
   query ReactionsByActivity($activityId: String!) {
@@ -46,21 +46,20 @@ const ReactionList = ({ activityId, userId }) => {
   const { reactions, totalReactions } = data.reactionsByActivity
 
   return (
-    <Grid>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Display reactions */}
       {reactions.length > 0 && (
         <div>
-          <h3>Reactions ({totalReactions})</h3>
           {reactions.map(reaction => (
-            <div key={reaction._id}>
-              <p>User ID: {reaction.userId}</p>
-              <p>{reaction.type}</p>
+            <Paper key={reaction._id} elevation={3} style={{ padding: '20px', margin: '10px 0', width: '160px' }}>
+              <Typography style={{ fontWeight: 'bold' }}>{reaction.userId}</Typography>
+              <Typography>{reaction.type}</Typography>
               {/* Add more reaction details as needed */}
-            </div>
+            </Paper>
           ))}
         </div>
       )}
-    </Grid>
+    </div>
   )
 }
 

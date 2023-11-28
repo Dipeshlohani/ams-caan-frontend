@@ -6,6 +6,7 @@ import CommentForm from '../../components/activity/CommentForm'
 import { gql } from '@apollo/react-hooks'
 import client from '../../../../apollo-client'
 import ActivityForm from '../../components/activity/ActivityForm'
+import { formatDistanceToNow } from 'date-fns'
 
 const GET_ACTIVITIES = gql`
   {
@@ -14,6 +15,7 @@ const GET_ACTIVITIES = gql`
       title
       description
       userId
+      createdAt
     }
   }
 `
@@ -21,7 +23,7 @@ const GET_ACTIVITIES = gql`
 const CRMDashboard = () => {
   const [activities, setActivities] = useState([])
   const [comments, setComments] = useState([])
-  const [selectedActivity, setSelectedActivity] = useState(null) // Add this line
+  const [selectedActivity, setSelectedActivity] = useState(null)
 
   useEffect(() => {
     // Fetch activities
@@ -35,12 +37,14 @@ const CRMDashboard = () => {
   }, [])
 
   const handleAddActivity = newActivity => {
-    setActivities(prevActivities => [...prevActivities, newActivity])
+    // Add the new activity to the beginning of the array
+    setActivities(prevActivities => [newActivity, ...prevActivities])
   }
 
   return (
     <ApexChartWrapper>
       <Grid container spacing={6}>
+        {/* Always render the ActivityForm */}
         <Grid item xs={12}>
           <ActivityForm onAddActivity={handleAddActivity} />
         </Grid>
@@ -48,16 +52,13 @@ const CRMDashboard = () => {
         {/* Display activities */}
         {activities.map(activity => (
           <Grid key={activity._id} item xs={12}>
-            {/* Log comments and activity._id */}
             {console.log('Comments:', comments)}
             {console.log('Activity ID:', activity._id)}
-
             <CardActivity
               activity={activity}
               comments={comments}
-              setComments={setComments} // Pass setComments function
+              setComments={setComments}
               onClick={() => {
-                // Set the selected activity
                 setSelectedActivity(activity)
               }}
             />

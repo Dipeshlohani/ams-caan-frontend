@@ -14,6 +14,7 @@ import ShareIcon from '@mui/icons-material/Share'
 import ReactionList from '../../../../pages/components/activity/ReactionList'
 import { useQuery } from '@apollo/react-hooks' // Import useQuery
 import { gql } from '@apollo/client'
+import { formatDistanceToNow } from 'date-fns'
 
 // Define your GraphQL query for comments
 const GET_COMMENTS = gql`
@@ -50,7 +51,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
   boxShadow: theme.shadows[3],
-  width: '900px',
+  width: '600px',
   margin: 'auto',
   '&:hover': {
     boxShadow: theme.shadows[6]
@@ -66,26 +67,13 @@ const StyledCardContent = styled(CardContent)(({ theme }) => ({
 
 const ReactionFormContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: '70px', // Adjust this value as needed
+  top: '330px', // Adjust this value as needed
   left: 0,
   zIndex: 1,
   backgroundColor: theme.palette.background.paper,
   padding: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
   boxShadow: theme.shadows[3]
-}))
-
-const ReactionListContainer = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: '-20px', // Adjust this value to control the overlap
-  left: '50%', // Center the Reaction List
-  transform: 'translateX(-50%)', // Center the Reaction List
-  zIndex: 1000, // Set a higher zIndex value
-  backgroundColor: theme.palette.background.paper,
-  padding: theme.spacing(2),
-  borderRadius: theme.shape.borderRadius,
-  boxShadow: theme.shadows[3],
-  width: '200px' // Adjust the width as needed
 }))
 
 const CardActivity = ({ activity, selectedActivity, setComments }) => {
@@ -176,14 +164,26 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
   return (
     <StyledCard>
       <StyledCardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5, position: 'relative' }}>
-          <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1 }} />
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5, position: 'relative' }}>
+          <Box sx={{paddingTop:'19px'}}>
+          <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1, }} />
+          </Box>
           <Box>
-            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+            {/* Display formatted creation date for the activity */}
+            <Typography variant='caption' sx={{ color: 'text.secondary', fontSize: '0.7rem', paddingTop: '0px' }}>
+              {/* Check if activity.createdAt is a valid date string before formatting */}
+              {activity.createdAt && !isNaN(new Date(activity.createdAt).getTime()) && (
+                <>Posted {formatDistanceToNow(new Date(activity.createdAt))} ago</>
+              )}
+            </Typography>
+            <Typography variant='body2' sx={{ color: 'text.primary', paddingTop: '0px' }}>
               {activity.userId}
             </Typography>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1 }}>
+            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1, paddingTop: '0px' }}>
               {activity.title}
+            </Typography>
+            <Typography variant='body1' sx={{ mb: 1.5 }}>
+              {activity.description}
             </Typography>
           </Box>
           {reactionFormVisible && (
@@ -191,22 +191,21 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
               <ReactionForm onAddReaction={handleAddReaction} activityId={activity._id} userId='12345' />
             </ReactionFormContainer>
           )}
-
-          {reactionListVisible && (
-            <ReactionListContainer ref={reactionListRef}>
-              <ReactionList activityId={activity._id} userId='12345' />
-            </ReactionListContainer>
-          )}
         </Box>
-        <Typography variant='body1' sx={{ mb: 1.5 }}>
-          {activity.description}
-        </Typography>
+
         <img
-          src='/images/avatars/4.png'
+          src='/images/cards/Rectangle 45.png'
           alt={activity.userId}
-          style={{ margin: 0, width: '70%', height: '160px', marginBottom: '1.5rem', borderRadius: '8px' }}
+          style={{
+            margin: 0,
+            width: '100%',
+            height: '270px',
+            marginBottom: '1.5rem',
+            borderRadius: '25px',
+            padding: '5px'
+          }}
         />
-        <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', marginTop:'-20px', marginLeft:'14px' }}>
           <IconButton size='small' onClick={handleReactionButtonClick}>
             <FavoriteIcon
               sx={{ fontSize: 18, color: 'error.main' }}
@@ -214,7 +213,17 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
               onMouseLeave={handleMouseLeave}
             />
           </IconButton>
-          <Typography variant='body2' sx={{ mr: 2 }} onClick={handleReactionNumberOnClick}>
+          <Typography
+            variant='body2'
+            sx={{
+              mr: 2,
+              cursor: 'pointer', // Change the cursor to a pointer
+              '&:hover': {
+                textDecoration: 'underline' // Add underline on hover
+              }
+            }}
+            onClick={handleReactionNumberOnClick}
+          >
             {totalReactions}
           </Typography>
           <IconButton size='small' onClick={handleCommentButtonClick}>
@@ -232,25 +241,11 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
         {commentFormVisible && (
           <div>
             <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='user1236785' />
-            {filteredComments.length > 0 && (
-              <div>
-                <h3>Comments</h3>
-                {filteredComments.map(comment => (
-                  <div key={comment._id}>
-                    <p>{comment.content}</p>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5, position: 'relative' }}>
-          {reactionListVisible && (
-            <ReactionListContainer ref={reactionListRef}>
-              <ReactionList activityId={activity._id} userId='12345' />
-            </ReactionListContainer>
-          )}
+          {reactionListVisible && <ReactionList activityId={activity._id} userId='12345' />}
         </Box>
       </StyledCardContent>
     </StyledCard>

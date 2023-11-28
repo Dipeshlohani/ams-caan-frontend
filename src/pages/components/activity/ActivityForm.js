@@ -1,4 +1,3 @@
-// ActivityForm.js
 import React, { useState } from 'react'
 import { useMutation } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
@@ -15,10 +14,10 @@ const CREATE_ACTIVITY = gql`
   }
 `
 
-const ActivityForm = ({ onAddActivity }) => {
+const ActivityForm = ({ onAddActivity, onHideForm }) => {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [userId, setUserId] = useState('<userId>') // You may need to get the user ID dynamically
+  const [userId, setUserId] = useState('Manish Shrestha') // You may need to get the user ID dynamically
 
   const [createActivity] = useMutation(CREATE_ACTIVITY)
 
@@ -36,6 +35,9 @@ const ActivityForm = ({ onAddActivity }) => {
 
       // Notify parent component about the new activity
       onAddActivity(data.createActivity)
+
+      // Hide the form
+      onHideForm()
     } catch (error) {
       console.error('Error creating activity:', error)
     }
@@ -44,7 +46,7 @@ const ActivityForm = ({ onAddActivity }) => {
   return (
     <Grid container justifyContent='center' padding='30px'>
       <Grid item xs={12} sm={8} md={6}>
-        <Paper elevation={3} style={{ padding: '20px' }}>
+        <Paper elevation={4} style={{ padding: '20px', width: '500px',  }}>
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
@@ -59,7 +61,7 @@ const ActivityForm = ({ onAddActivity }) => {
               label='Description'
               variant='outlined'
               multiline
-              rows={4}
+              rows={2}
               margin='normal'
               value={description}
               onChange={e => setDescription(e.target.value)}
