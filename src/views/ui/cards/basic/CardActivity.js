@@ -67,8 +67,8 @@ const StyledCardContent = styled(CardContent)(({ theme }) => ({
 
 const ReactionFormContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: '330px', // Adjust this value as needed
-  left: 0,
+  left: '15',
+  marginTop: '-55px',
   zIndex: 1,
   backgroundColor: theme.palette.background.paper,
   padding: theme.spacing(2),
@@ -134,6 +134,7 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
 
   const handleReactionNumberOnClick = () => {
     setReactionListVisible(prevState => !prevState)
+    setCommentFormVisible(false)
   }
 
   const handleClickOutsideReactionList = event => {
@@ -165,32 +166,30 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     <StyledCard>
       <StyledCardContent>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5, position: 'relative' }}>
-          <Box sx={{paddingTop:'19px'}}>
-          <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1, }} />
+          <Box sx={{ paddingTop: '8px' }}>
+            <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1 }} />
           </Box>
           <Box>
+            <Typography variant='body2' sx={{ color: 'text.primary', paddingTop: '10px', paddingBottom: '0px' }}>
+              {activity.userId}
+            </Typography>
             {/* Display formatted creation date for the activity */}
-            <Typography variant='caption' sx={{ color: 'text.secondary', fontSize: '0.7rem', paddingTop: '0px' }}>
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.secondary', fontSize: '0.7rem', position: 'absolute', marginTop: '-5px' }}
+            >
               {/* Check if activity.createdAt is a valid date string before formatting */}
               {activity.createdAt && !isNaN(new Date(activity.createdAt).getTime()) && (
                 <>Posted {formatDistanceToNow(new Date(activity.createdAt))} ago</>
               )}
             </Typography>
-            <Typography variant='body2' sx={{ color: 'text.primary', paddingTop: '0px' }}>
-              {activity.userId}
-            </Typography>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1, paddingTop: '0px' }}>
+            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1, paddingTop: '20px' }}>
               {activity.title}
             </Typography>
             <Typography variant='body1' sx={{ mb: 1.5 }}>
               {activity.description}
             </Typography>
           </Box>
-          {reactionFormVisible && (
-            <ReactionFormContainer onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-              <ReactionForm onAddReaction={handleAddReaction} activityId={activity._id} userId='12345' />
-            </ReactionFormContainer>
-          )}
         </Box>
 
         <img
@@ -205,7 +204,15 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
             padding: '5px'
           }}
         />
-        <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', marginTop:'-20px', marginLeft:'14px' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            color: 'text.secondary',
+            marginTop: '-20px',
+            marginLeft: '14px'
+          }}
+        >
           <IconButton size='small' onClick={handleReactionButtonClick}>
             <FavoriteIcon
               sx={{ fontSize: 18, color: 'error.main' }}
@@ -213,6 +220,12 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
               onMouseLeave={handleMouseLeave}
             />
           </IconButton>
+          {reactionFormVisible && (
+            <ReactionFormContainer onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+              <ReactionForm onAddReaction={handleAddReaction} activityId={activity._id} userId='Manish Shrestha' />
+            </ReactionFormContainer>
+          )}
+
           <Typography
             variant='body2'
             sx={{
@@ -240,12 +253,12 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
         </Box>
         {commentFormVisible && (
           <div>
-            <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='user1236785' />
+            <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='Manish Shrestha' />
           </div>
         )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5, position: 'relative' }}>
-          {reactionListVisible && <ReactionList activityId={activity._id} userId='12345' />}
+          {reactionListVisible && <ReactionList activityId={activity._id} userId='Manish Shrestha' />}
         </Box>
       </StyledCardContent>
     </StyledCard>

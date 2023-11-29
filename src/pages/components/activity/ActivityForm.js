@@ -44,9 +44,9 @@ const ActivityForm = ({ onAddActivity, onHideForm }) => {
   }
 
   return (
-    <Grid container justifyContent='center' padding='30px'>
+    <Grid container justifyContent='center' padding='0px'>
       <Grid item xs={12} sm={8} md={6}>
-        <Paper elevation={4} style={{ padding: '20px', width: '500px',  }}>
+        <Paper elevation={4} style={{ padding: '20px', width: '600px',  }}>
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth

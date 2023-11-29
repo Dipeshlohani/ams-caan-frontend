@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
-import { Button, Grid, Paper } from '@mui/material'
+import { Button, Paper } from '@mui/material'
+import ThumbUpIcon from '@mui/icons-material/ThumbUp'
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions'
+import WhatshotIcon from '@mui/icons-material/Whatshot'
 
 const CREATE_REACTION = gql`
   mutation CreateReaction($userId: String!, $activityId: String!, $type: String!) {
@@ -106,34 +110,25 @@ const ReactionForm = ({ onAddReaction, activityId, userId }) => {
   const reactions = reactionsData.reactions
 
   return (
-    // <Grid container justifyContent='center' padding='30px'>
-    //   <Grid item xs={12} sm={8} md={6}>
-        <Paper elevation={3} style={{ padding: '20px' }}>
-          <Button
-            onClick={() => handleSubmit('LIKE')}
-            variant='contained'
-            color='primary'
-            style={{ marginRight: '10px' }}
-          >
-            Like
-          </Button>
-          <Button
-            onClick={() => handleSubmit('LOVE')}
-            variant='contained'
-            color='secondary'
-            style={{ marginRight: '10px' }}
-          >
-            Love
-          </Button>
-          <Button onClick={() => handleSubmit('WOW')} variant='contained' color='info' style={{ marginRight: '10px' }}>
-            Wow
-          </Button>
-          <Button onClick={() => handleSubmit('ANGRY')} variant='contained' color='error'>
-            Angry
-          </Button>
-        </Paper>
-    //   </Grid>
-    // </Grid>
+    <Paper elevation={3} style={{ padding: '20px' }}>
+      <Button onClick={() => handleSubmit('LIKE')} variant='contained' color='primary' style={{ marginRight: '10px' }}>
+        <ThumbUpIcon />
+      </Button>
+      <Button
+        onClick={() => handleSubmit('LOVE')}
+        variant='contained'
+        color='secondary'
+        style={{ marginRight: '10px' }}
+      >
+        <FavoriteIcon />
+      </Button>
+      <Button onClick={() => handleSubmit('WOW')} variant='contained' color='info' style={{ marginRight: '10px' }}>
+        <EmojiEmotionsIcon />
+      </Button>
+      <Button onClick={() => handleSubmit('ANGRY')} variant='contained' color='error'>
+        <WhatshotIcon />
+      </Button>
+    </Paper>
   )
 }
 

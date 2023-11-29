@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
-import { TextField, Button, Grid, Paper, Typography } from '@mui/material'
+import { TextField, Button, Grid, Typography, Box, Avatar, Paper } from '@mui/material'
 import { formatDistanceToNow } from 'date-fns'
 
 const CREATE_COMMENT = gql`
@@ -62,41 +62,46 @@ const CommentForm = ({ onAddComment, activityId, userId, totalComments }) => {
   const { comments, totalComments: commentsCount } = data.commentsByActivity
 
   return (
-    <Grid container justifyContent='center' padding='30px'>
+    <Grid container justifyContent='center' padding='10px'>
       <Grid item xs={12} sm={8} md={6}>
         <div>
           {comments.map(comment => (
-            <Paper key={comment._id} elevation={3} style={{ padding: '10px', margin: '10px 0' }}>
-              <Typography>{comment.userId}</Typography>
-              <Typography variant='body1' style={{ fontWeight: 'bold' }}>
-                {comment.content}
-              </Typography>
-              <Typography style={{ fontSize: '0.7rem', color: '#777' }}>
-                Posted {formatDistanceToNow(new Date(comment.createdAt))} ago
-              </Typography>
+            <Paper
+              key={comment._id}
+              elevation={3}
+              style={{ padding: '10px', margin: '10px 0', width: '547px', marginLeft: '-142px' }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Avatar alt='User Avatar' src='/images/avatars/6.png' sx={{ width: 32, height: 32, mr: 1 }} />
+                <div>
+                  <Typography style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>{comment.userId}</Typography>
+                  <Typography variant='body1'>{comment.content}</Typography>
+                  <Typography style={{ fontSize: '0.7rem', color: '#777' }}>
+                    Posted {formatDistanceToNow(new Date(comment.createdAt))} ago
+                  </Typography>
+                </div>
+              </Box>
             </Paper>
           ))}
         </div>
-      </Grid>
-
-      <Grid item xs={12} sm={8} md={6}>
-        <Paper elevation={3} style={{ padding: '20px', marginTop: '20px' }}>
+        <div style={{ padding: '0 20px', marginTop: '10px', width: '587px', marginLeft: '-161px', maxHeight: '' }}>
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
               label='Comment'
               variant='outlined'
               multiline
-              rows={4}
+              rows={1}
               margin='normal'
               value={content}
               onChange={e => setContent(e.target.value)}
+
             />
-            <Button type='submit' variant='contained' color='primary' style={{ marginTop: '10px' }}>
+            <Button type='submit' variant='contained' color='primary' style={{ marginTop: '10px', maxHeight: '30px' }}>
               Post Comment
             </Button>
           </form>
-        </Paper>
+        </div>
       </Grid>
     </Grid>
   )
