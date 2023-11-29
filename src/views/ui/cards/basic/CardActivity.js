@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import Paper from '@mui/material/Paper'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Avatar from '@mui/material/Avatar'
@@ -15,6 +16,8 @@ import ReactionList from '../../../../pages/components/activity/ReactionList'
 import { useQuery } from '@apollo/react-hooks' // Import useQuery
 import { gql } from '@apollo/client'
 import { formatDistanceToNow } from 'date-fns'
+import { useRouter } from 'next/router'
+import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined'
 
 // Define your GraphQL query for comments
 const GET_COMMENTS = gql`
@@ -45,6 +48,18 @@ const GET_REACTIONS = gql`
     }
   }
 `
+const PaperBox = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  position: 'absolute',
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[3],
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginTop: '90px',
+  marginLeft: '0px'
+}))
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -67,7 +82,6 @@ const StyledCardContent = styled(CardContent)(({ theme }) => ({
 
 const ReactionFormContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  left: '15',
   marginTop: '-55px',
   zIndex: 1,
   backgroundColor: theme.palette.background.paper,
@@ -77,6 +91,10 @@ const ReactionFormContainer = styled(Box)(({ theme }) => ({
 }))
 
 const CardActivity = ({ activity, selectedActivity, setComments }) => {
+  const router = useRouter()
+  const [linkCopied, setLinkCopied] = useState(false) // State to track if link is copied
+  const [linkBoxVisible, setLinkBoxVisible] = useState(false) // State to track if link box is visible
+
   const {
     loading: commentLoading,
     error: commentError,
@@ -104,6 +122,43 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     console.log('New reaction:', newReaction)
   }
 
+  const handleShareButtonClick = () => {
+    // Show the link box
+    setLinkBoxVisible(true)
+
+    setIsDarkMode(true)
+
+    // Hide the link box after a short delay (e.g., 3 seconds)
+    setTimeout(() => {
+      setLinkBoxVisible(true)
+      setLinkCopied(false)
+
+      setIsDarkMode(false)
+    }, 3000)
+  }
+
+  const handleCopyButtonClick = () => {
+    const activityId = activity._id
+    const shareableLink = `${window.location.origin}/crm/dashboard/${activityId}`
+
+    // Create a temporary input element
+    const input = document.createElement('input')
+    input.value = shareableLink
+    document.body.appendChild(input)
+    input.select()
+
+    try {
+      // Copy the link to the clipboard
+      document.execCommand('copy')
+      setLinkCopied(true)
+    } catch (err) {
+      console.error('Unable to copy link to clipboard', err)
+    } finally {
+      // Remove the temporary input element
+      document.body.removeChild(input)
+    }
+  }
+
   const [commentFormVisible, setCommentFormVisible] = useState(false)
   const [reactionFormVisible, setReactionFormVisible] = useState(false)
   const [reactionListVisible, setReactionListVisible] = useState(false)
@@ -111,7 +166,7 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
   const [totalReactions, setTotalReactions] = useState(reactionData?.reactionsByActivity?.totalReactions || 0)
 
   const reactionListRef = useRef()
-
+  const [isDarkMode, setIsDarkMode] = useState(false)
   const handleCommentButtonClick = () => {
     setCommentFormVisible(prevState => !prevState)
     setReactionFormVisible(false)
@@ -143,6 +198,15 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     }
   }
 
+  const handleClickOutsideLinkBox = event => {
+    const linkBox = document.getElementById('linkBox')
+
+    // Check if the click is outside the link box
+    if (linkBox && !linkBox.contains(event.target)) {
+      setLinkBoxVisible(false)
+    }
+  }
+
   useEffect(() => {
     if (!commentLoading && commentData) {
       setTotalComments(commentData.commentsByActivity.totalComments)
@@ -162,8 +226,15 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     }
   }, [])
 
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutsideLinkBox)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideLinkBox)
+    }
+  }, [])
+
   return (
-    <StyledCard>
+    <StyledCard className={isDarkMode ? { filter: 'brightness(0.8)' } : {}}>
       <StyledCardContent>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5, position: 'relative' }}>
           <Box sx={{ paddingTop: '8px' }}>
@@ -186,7 +257,7 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
             <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1, paddingTop: '20px' }}>
               {activity.title}
             </Typography>
-            <Typography variant='body1' sx={{ mb: 1.5 }}>
+            <Typography variant='body1' sx={{ mb: 1.5, width: '505px' }}>
               {activity.description}
             </Typography>
           </Box>
@@ -246,9 +317,25 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
             {totalComments}
           </Typography>
 
-          <IconButton size='small'>
+          <IconButton size='small' onClick={handleShareButtonClick}>
             <ShareIcon sx={{ fontSize: 18 }} />
           </IconButton>
+
+          {/* PaperBox for link display and copy button */}
+          {linkBoxVisible && (
+            <PaperBox id='linkBox'>
+              <Typography variant='body2'>{`${window.location.origin}/crm/dashboard/${activity._id}`}</Typography>
+              <IconButton size='small' onClick={handleCopyButtonClick}>
+                <FileCopyOutlinedIcon />
+              </IconButton>
+            </PaperBox>
+          )}
+
+          {linkCopied && (
+            <Typography variant='body2' sx={{ ml: 1, color: 'success.main' }}>
+              Link copied!
+            </Typography>
+          )}
           <Typography variant='body2'>80</Typography>
         </Box>
         {commentFormVisible && (
