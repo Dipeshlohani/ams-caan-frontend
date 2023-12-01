@@ -18,6 +18,8 @@ import { useQuery } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/router'
+import Snackbar from '@mui/material/Snackbar'
+import MuiAlert from '@mui/material/Alert'
 
 // Define your GraphQL query for a single activity
 const GET_ACTIVITY = gql`
@@ -107,6 +109,24 @@ const ReactionFormContainer = styled(Box)(({ theme }) => ({
 const ActivityDetailPage = () => {
   const router = useRouter()
   const { activityId } = router.query
+  const [linkVisible, setLinkVisible] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+
+  const handleClickOutsideLinkBox = event => {
+    const linkBox = document.getElementById('linkBox')
+
+    // Check if the click is outside the link box
+    if (linkBox && !linkBox.contains(event.target)) {
+      setLinkVisible(false)
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutsideLinkBox)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideLinkBox)
+    }
+  }, [])
 
   // Fetch activity details
   const {
@@ -164,6 +184,39 @@ const ActivityDetailPage = () => {
     setReactionFormVisible(prevState => !prevState)
     setCommentFormVisible(false)
     setReactionListVisible(prevState => !prevState)
+  }
+
+  const handleShareButtonClick = () => {
+    // Show the link box
+    setLinkVisible(true)
+
+    // Hide the link box after a short delay (e.g., 3 seconds)
+    setTimeout(() => {
+      setLinkVisible(false)
+      setLinkCopied(false)
+    }, 3000)
+  }
+
+  const handleCopyButtonClick = () => {
+    const activityId = activity._id
+    const shareableLink = `${window.location.origin}/dashboards/crm/${activityId}`
+
+    // Create a temporary input element
+    const input = document.createElement('input')
+    input.value = shareableLink
+    document.body.appendChild(input)
+    input.select()
+
+    try {
+      // Copy the link to the clipboard
+      document.execCommand('copy')
+      setLinkCopied(true)
+    } catch (err) {
+      console.error('Unable to copy link to clipboard', err)
+    } finally {
+      // Remove the temporary input element
+      document.body.removeChild(input)
+    }
   }
 
   const handleAddReaction = newReaction => {
@@ -272,10 +325,51 @@ const ActivityDetailPage = () => {
           <Typography variant='body2' sx={{ mr: 2 }}>
             {totalComments}
           </Typography>
-          <IconButton size='small'>
+
+          <IconButton size='small' onClick={handleShareButtonClick}>
             <ShareIcon sx={{ fontSize: 18 }} />
           </IconButton>
+
+          {/* PaperBox for link display and copy button */}
+          {linkVisible && (
+            <PaperBox id='linkBox'>
+              <Typography variant='body2'>{`${window.location.origin}/dashboards/crm/${activity._id}`}</Typography>
+              <IconButton size='small' onClick={handleCopyButtonClick}>
+                <FileCopyOutlinedIcon />
+              </IconButton>
+            </PaperBox>
+          )}
+
+          <Typography variant='body2'>80</Typography>
         </Box>
+        {/* Snackbar for link copied message */}
+        <Snackbar open={linkCopied} autoHideDuration={5000} onClose={() => setLinkCopied(false)}>
+          <MuiAlert elevation={6} variant='filled' onClose={() => setLinkCopied(false)} severity='success'>
+            Link copied to clipboard!
+          </MuiAlert>
+        </Snackbar>
+
+        {/* PaperBox for link display and copy button */}
+        {/* {linkVisible && (
+          <PaperBox>
+            <Typography variant='body2'>{`${window.location.origin}/dashboards/crm/${activity._id}`}</Typography>
+            <IconButton size='small' onClick={handleCopyButtonClick}>
+              <FileCopyOutlinedIcon />
+            </IconButton>
+          </PaperBox>
+        )}
+
+        <Snackbar open={linkVisible} autoHideDuration={6000} onClose={() => setLinkVisible(false)}>
+          <MuiAlert
+            elevation={6}
+            variant='filled'
+            onClose={() => setLinkVisible(false)}
+            severity={linkCopied ? 'success' : 'info'}
+          >
+            {linkCopied ? 'Link copied to clipboard!' : `Shareable link: ${window.location.href}`}
+          </MuiAlert>
+        </Snackbar> */}
+
         {commentFormVisible && (
           <CommentForm
             onAddComment={(newComment, newTotalComments) => {

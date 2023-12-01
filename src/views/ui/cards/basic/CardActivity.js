@@ -18,6 +18,8 @@ import { gql } from '@apollo/client'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/router'
 import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined'
+import Snackbar from '@mui/material/Snackbar'
+import MuiAlert from '@mui/material/Alert'
 
 // Define your GraphQL query for comments
 const GET_COMMENTS = gql`
@@ -332,12 +334,13 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
           )}
 
           <Typography variant='body2'>80</Typography>
-          {linkCopied && (
-            <Typography variant='body2' sx={{ ml: 1, color: 'success.main' }}>
-              Link copied!
-            </Typography>
-          )}
         </Box>
+        {/* Snackbar for link copied message */}
+        <Snackbar open={linkCopied} autoHideDuration={5000} onClose={() => setLinkCopied(false)}>
+          <MuiAlert elevation={6} variant='filled' onClose={() => setLinkCopied(false)} severity='success'>
+            Link copied to clipboard!
+          </MuiAlert>
+        </Snackbar>
         {commentFormVisible && (
           <div>
             <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='Manish Shrestha' />
