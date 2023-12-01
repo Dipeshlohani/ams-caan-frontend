@@ -30,6 +30,7 @@ const GET_ACTIVITY = gql`
       title
       description
       createdAt
+      shareCount
     }
   }
 `
@@ -340,7 +341,7 @@ const ActivityDetailPage = () => {
             </PaperBox>
           )}
 
-          <Typography variant='body2'>80</Typography>
+          <Typography variant='body2'>{activity.shareCount}</Typography>
         </Box>
         {/* Snackbar for link copied message */}
         <Snackbar open={linkCopied} autoHideDuration={5000} onClose={() => setLinkCopied(false)}>

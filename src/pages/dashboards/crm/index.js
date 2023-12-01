@@ -16,6 +16,7 @@ const GET_ACTIVITIES = gql`
       description
       userId
       createdAt
+      shareCount
     }
   }
 `

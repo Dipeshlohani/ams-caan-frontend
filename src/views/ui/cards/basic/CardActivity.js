@@ -13,7 +13,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite'
 import CommentIcon from '@mui/icons-material/ModeCommentOutlined'
 import ShareIcon from '@mui/icons-material/Share'
 import ReactionList from '../../../../pages/components/activity/ReactionList'
-import { useQuery } from '@apollo/react-hooks' // Import useQuery
+import { useQuery, useMutation } from '@apollo/react-hooks' // Import useQuery
 import { gql } from '@apollo/client'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/router'
@@ -50,6 +50,20 @@ const GET_REACTIONS = gql`
     }
   }
 `
+
+const UPDATE_SHARE_COUNT = gql`
+  mutation UpdateShareCount($activityId: String!) {
+    updateShareCount(activityId: $activityId) {
+      _id
+    }
+  }
+`
+const GET_SHARE_COUNT = gql`
+  query ShareCount($activityId: String!) {
+    shareCount(activityId: $activityId)
+  }
+`
+
 const PaperBox = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   position: 'absolute',
@@ -97,6 +111,13 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
   const [linkCopied, setLinkCopied] = useState(false) // State to track if link is copied
   const [linkBoxVisible, setLinkBoxVisible] = useState(false) // State to track if link box is visible
 
+  // Use useMutation hook to define updateShareCount function
+  const [updateShareCount] = useMutation(UPDATE_SHARE_COUNT, {
+    onError: error => {
+      console.error('Error updating share count:', error.message)
+    }
+  })
+
   const {
     loading: commentLoading,
     error: commentError,
@@ -113,6 +134,21 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     variables: { activityId: activity._id }
   })
 
+  // Use useQuery hook to fetch share count
+  const {
+    loading: shareCountLoading,
+    error: shareCountError,
+    data: shareCountData
+  } = useQuery(GET_SHARE_COUNT, {
+    variables: { activityId: activity._id }
+  })
+
+  console.log('shareCountLoading:', shareCountLoading)
+  console.log('shareCountError:', shareCountError)
+  console.log('shareCountData:', shareCountData)
+
+  const totalShares = shareCountLoading ? 0 : shareCountData?.shareCount || 0
+  //
   const filteredComments = commentLoading ? [] : commentData?.commentsByActivity?.comments || []
 
   const handleAddComment = newComment => {
@@ -143,22 +179,24 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     const activityId = activity._id
     const shareableLink = `${window.location.origin}/dashboards/crm/${activityId}`
 
-    // Create a temporary input element
     const input = document.createElement('input')
     input.value = shareableLink
     document.body.appendChild(input)
     input.select()
 
     try {
-      // Copy the link to the clipboard
       document.execCommand('copy')
       setLinkCopied(true)
     } catch (err) {
       console.error('Unable to copy link to clipboard', err)
     } finally {
-      // Remove the temporary input element
       document.body.removeChild(input)
     }
+
+    // Call the updateShareCount mutation
+    updateShareCount({
+      variables: { activityId }
+    })
   }
 
   const [commentFormVisible, setCommentFormVisible] = useState(false)
@@ -208,6 +246,8 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
       setLinkBoxVisible(false)
     }
   }
+
+  console.log('shareCountData:', shareCountData)
 
   useEffect(() => {
     if (!commentLoading && commentData) {
@@ -333,7 +373,7 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
             </PaperBox>
           )}
 
-          <Typography variant='body2'>80</Typography>
+          <Typography variant='body2'>{activity.shareCount}</Typography>
         </Box>
         {/* Snackbar for link copied message */}
         <Snackbar open={linkCopied} autoHideDuration={5000} onClose={() => setLinkCopied(false)}>
