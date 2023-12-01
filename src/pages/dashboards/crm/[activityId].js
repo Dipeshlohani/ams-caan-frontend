@@ -7,17 +7,30 @@ import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/system'
-import CommentForm from '../../../../pages/components/activity/CommentForm'
-import ReactionForm from '../../../../pages/components/activity/ReactionComponent'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import CommentIcon from '@mui/icons-material/ModeCommentOutlined'
 import ShareIcon from '@mui/icons-material/Share'
-import ReactionList from '../../../../pages/components/activity/ReactionList'
-import { useQuery } from '@apollo/react-hooks' // Import useQuery
+import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined'
+import CommentForm from '../../components/activity/CommentForm'
+import ReactionForm from '../../components/activity/ReactionComponent'
+import ReactionList from '../../components/activity/ReactionList'
+import { useQuery } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/router'
-import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined'
+
+// Define your GraphQL query for a single activity
+const GET_ACTIVITY = gql`
+  query GetActivity($activityId: String!) {
+    activity(id: $activityId) {
+      _id
+      userId
+      title
+      description
+      createdAt
+    }
+  }
+`
 
 // Define your GraphQL query for comments
 const GET_COMMENTS = gql`
@@ -48,6 +61,7 @@ const GET_REACTIONS = gql`
     }
   }
 `
+
 const PaperBox = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   position: 'absolute',
@@ -90,83 +104,56 @@ const ReactionFormContainer = styled(Box)(({ theme }) => ({
   boxShadow: theme.shadows[3]
 }))
 
-const CardActivity = ({ activity, selectedActivity, setComments }) => {
+const ActivityDetailPage = () => {
   const router = useRouter()
-  const [linkCopied, setLinkCopied] = useState(false) // State to track if link is copied
-  const [linkBoxVisible, setLinkBoxVisible] = useState(false) // State to track if link box is visible
+  const { activityId } = router.query
 
+  // Fetch activity details
+  const {
+    loading: activityLoading,
+    error: activityError,
+    data: activityData
+  } = useQuery(GET_ACTIVITY, {
+    variables: { activityId }
+  })
+
+  // Fetch comments
   const {
     loading: commentLoading,
     error: commentError,
     data: commentData
   } = useQuery(GET_COMMENTS, {
-    variables: { activityId: activity._id }
+    variables: { activityId }
   })
 
+  // Fetch reactions
   const {
     loading: reactionLoading,
     error: reactionError,
     data: reactionData
   } = useQuery(GET_REACTIONS, {
-    variables: { activityId: activity._id }
+    variables: { activityId }
   })
 
-  const filteredComments = commentLoading ? [] : commentData?.commentsByActivity?.comments || []
-
-  const handleAddComment = newComment => {
-    setComments(prevComments => [...prevComments, newComment])
-    setTotalComments(prevTotalComments => prevTotalComments + 1)
-  }
-
-  const handleAddReaction = newReaction => {
-    console.log('New reaction:', newReaction)
-  }
-
-  const handleShareButtonClick = () => {
-    // Show the link box
-    setLinkBoxVisible(true)
-
-    setIsDarkMode(true)
-
-    // Hide the link box after a short delay (e.g., 3 seconds)
-    setTimeout(() => {
-      setLinkBoxVisible(true)
-      setLinkCopied(false)
-
-      setIsDarkMode(false)
-    }, 3000)
-  }
-
-  const handleCopyButtonClick = () => {
-    const activityId = activity._id
-    const shareableLink = `${window.location.origin}/dashboards/crm/${activityId}`
-
-    // Create a temporary input element
-    const input = document.createElement('input')
-    input.value = shareableLink
-    document.body.appendChild(input)
-    input.select()
-
-    try {
-      // Copy the link to the clipboard
-      document.execCommand('copy')
-      setLinkCopied(true)
-    } catch (err) {
-      console.error('Unable to copy link to clipboard', err)
-    } finally {
-      // Remove the temporary input element
-      document.body.removeChild(input)
-    }
-  }
+  console.log('Activity ID:', activityId)
+  console.log('Comment Data:', commentData)
+  console.log('Reaction Data:', reactionData)
 
   const [commentFormVisible, setCommentFormVisible] = useState(false)
   const [reactionFormVisible, setReactionFormVisible] = useState(false)
   const [reactionListVisible, setReactionListVisible] = useState(false)
-  const [totalComments, setTotalComments] = useState(activity.totalComments || 0)
-  const [totalReactions, setTotalReactions] = useState(reactionData?.reactionsByActivity?.totalReactions || 0)
+  if (activityLoading || commentLoading || reactionLoading) return <p>Loading...</p>
+  if (activityError) return <p>Error: {activityError.message}</p>
+  if (!activityData?.activity) return <p>Activity not found or loading...</p>
+  if (!commentData?.commentsByActivity) return <p>Error loading comments</p>
+  if (!reactionData?.reactionsByActivity) return <p>Error loading reactions</p>
 
-  const reactionListRef = useRef()
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const activity = activityData.activity
+  const comments = commentData?.commentsByActivity?.comments || []
+  const totalComments = commentData?.commentsByActivity?.totalComments || 0
+  const reactions = reactionData?.reactionsByActivity?.reactions || []
+  const totalReactions = reactionData?.reactionsByActivity?.totalReactions || 0
+
   const handleCommentButtonClick = () => {
     setCommentFormVisible(prevState => !prevState)
     setReactionFormVisible(false)
@@ -179,6 +166,10 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     setReactionListVisible(prevState => !prevState)
   }
 
+  const handleAddReaction = newReaction => {
+    console.log('New reaction:', newReaction)
+  }
+
   const handleMouseEnter = () => {
     setReactionFormVisible(true)
   }
@@ -187,56 +178,29 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     setReactionFormVisible(false)
   }
 
-  const handleReactionNumberOnClick = () => {
-    setReactionListVisible(prevState => !prevState)
-    setCommentFormVisible(false)
-  }
-
-  const handleClickOutsideReactionList = event => {
-    if (reactionListRef.current && !reactionListRef.current.contains(event.target)) {
-      setReactionListVisible(false)
-    }
-  }
-
-  const handleClickOutsideLinkBox = event => {
-    const linkBox = document.getElementById('linkBox')
-
-    // Check if the click is outside the link box
-    if (linkBox && !linkBox.contains(event.target)) {
-      setLinkBoxVisible(false)
-    }
-  }
-
-  useEffect(() => {
-    if (!commentLoading && commentData) {
-      setTotalComments(commentData.commentsByActivity.totalComments)
-    }
-  }, [commentLoading, commentData])
-
-  useEffect(() => {
-    if (!reactionLoading && reactionData) {
-      setTotalReactions(reactionData.reactionsByActivity.totalReactions)
-    }
-  }, [reactionLoading, reactionData])
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutsideReactionList)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideReactionList)
-    }
-  }, [])
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutsideLinkBox)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideLinkBox)
-    }
-  }, [])
-
   return (
-    <StyledCard className={isDarkMode ? { filter: 'brightness(0.8)' } : {}}>
-      <StyledCardContent>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5, position: 'relative' }}>
+    <Card
+      sx={{
+        backgroundColor: '#fff',
+        border: '1px solid #e0e0e0',
+        borderRadius: '16px',
+        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+        width: '600px',
+        margin: 'auto',
+        '&:hover': {
+          boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)'
+        }
+      }}
+    >
+      <CardContent>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            mb: 1.5,
+            position: 'relative'
+          }}
+        >
           <Box sx={{ paddingTop: '8px' }}>
             <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1 }} />
           </Box>
@@ -244,12 +208,15 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
             <Typography variant='body2' sx={{ color: 'text.primary', paddingTop: '10px', paddingBottom: '0px' }}>
               {activity.userId}
             </Typography>
-            {/* Display formatted creation date for the activity */}
             <Typography
               variant='caption'
-              sx={{ color: 'text.secondary', fontSize: '0.7rem', position: 'absolute', marginTop: '-5px' }}
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.7rem',
+                position: 'absolute',
+                marginTop: '-5px'
+              }}
             >
-              {/* Check if activity.createdAt is a valid date string before formatting */}
               {activity.createdAt && !isNaN(new Date(activity.createdAt).getTime()) && (
                 <>Posted {formatDistanceToNow(new Date(activity.createdAt))} ago</>
               )}
@@ -296,18 +263,7 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
               <ReactionForm onAddReaction={handleAddReaction} activityId={activity._id} userId='Manish Shrestha' />
             </ReactionFormContainer>
           )}
-
-          <Typography
-            variant='body2'
-            sx={{
-              mr: 2,
-              cursor: 'pointer', // Change the cursor to a pointer
-              '&:hover': {
-                textDecoration: 'underline' // Add underline on hover
-              }
-            }}
-            onClick={handleReactionNumberOnClick}
-          >
+          <Typography variant='body2' sx={{ mr: 2, cursor: 'pointer' }} onClick={handleReactionButtonClick}>
             {totalReactions}
           </Typography>
           <IconButton size='small' onClick={handleCommentButtonClick}>
@@ -316,40 +272,26 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
           <Typography variant='body2' sx={{ mr: 2 }}>
             {totalComments}
           </Typography>
-
-          <IconButton size='small' onClick={handleShareButtonClick}>
+          <IconButton size='small'>
             <ShareIcon sx={{ fontSize: 18 }} />
           </IconButton>
-
-          {/* PaperBox for link display and copy button */}
-          {linkBoxVisible && (
-            <PaperBox id='linkBox'>
-              <Typography variant='body2'>{`${window.location.origin}/dashboards/crm/${activity._id}`}</Typography>
-              <IconButton size='small' onClick={handleCopyButtonClick}>
-                <FileCopyOutlinedIcon />
-              </IconButton>
-            </PaperBox>
-          )}
-
-          <Typography variant='body2'>80</Typography>
-          {linkCopied && (
-            <Typography variant='body2' sx={{ ml: 1, color: 'success.main' }}>
-              Link copied!
-            </Typography>
-          )}
         </Box>
         {commentFormVisible && (
-          <div>
-            <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='Manish Shrestha' />
-          </div>
+          <CommentForm
+            onAddComment={(newComment, newTotalComments) => {
+              // You can perform any additional logic here if needed
+              setTotalComments(newTotalComments)
+            }}
+            activityId={activity._id}
+            userId='Manish Shrestha'
+            totalComments={totalComments}
+          />
         )}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5, position: 'relative' }}>
-          {reactionListVisible && <ReactionList activityId={activity._id} userId='Manish Shrestha' />}
-        </Box>
-      </StyledCardContent>
-    </StyledCard>
+        {reactionListVisible && <ReactionList activityId={activity._id} userId='Manish Shrestha' />}
+      </CardContent>
+    </Card>
   )
 }
 
-export default CardActivity
+export default ActivityDetailPage
