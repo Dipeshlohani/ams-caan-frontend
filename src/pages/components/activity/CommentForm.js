@@ -62,14 +62,14 @@ const CommentForm = ({ onAddComment, activityId, userId, totalComments }) => {
   const { comments, totalComments: commentsCount } = data.commentsByActivity
 
   return (
-    <Grid container justifyContent='center' padding='10px'>
+    <Grid container  padding='10px'>
       <Grid item xs={12} sm={8} md={6}>
         <div>
           {comments.map(comment => (
             <Paper
               key={comment._id}
               elevation={3}
-              style={{ padding: '10px', margin: '10px 0', width: '547px', marginLeft: '-142px' }}
+              style={{ padding: '10px', margin: '10px 0', width: '547px',  }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Avatar alt='User Avatar' src='/images/avatars/6.png' sx={{ width: 32, height: 32, mr: 1 }} />
@@ -84,7 +84,7 @@ const CommentForm = ({ onAddComment, activityId, userId, totalComments }) => {
             </Paper>
           ))}
         </div>
-        <div style={{ padding: '0 20px', marginTop: '10px', width: '587px', marginLeft: '-161px', maxHeight: '' }}>
+        <div style={{ padding: '0 0px', marginTop: '10px', width: '547px',  maxHeight: '' }}>
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
