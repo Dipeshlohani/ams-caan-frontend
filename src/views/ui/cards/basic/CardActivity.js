@@ -6,6 +6,7 @@ import Avatar from '@mui/material/Avatar'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import IconButton from '@mui/material/IconButton'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { styled } from '@mui/system'
 import CommentForm from '../../../../pages/components/activity/CommentForm'
 import ReactionForm from '../../../../pages/components/activity/ReactionComponent'
@@ -13,13 +14,21 @@ import FavoriteIcon from '@mui/icons-material/Favorite'
 import CommentIcon from '@mui/icons-material/ModeCommentOutlined'
 import ShareIcon from '@mui/icons-material/Share'
 import ReactionList from '../../../../pages/components/activity/ReactionList'
-import { useQuery, useMutation } from '@apollo/react-hooks' // Import useQuery
+import { useQuery, useMutation } from '@apollo/react-hooks'
 import { gql } from '@apollo/client'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/router'
 import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined'
 import Snackbar from '@mui/material/Snackbar'
 import MuiAlert from '@mui/material/Alert'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
 
 // Define your GraphQL query for comments
 const GET_COMMENTS = gql`
@@ -58,9 +67,26 @@ const UPDATE_SHARE_COUNT = gql`
     }
   }
 `
+
 const GET_SHARE_COUNT = gql`
   query ShareCount($activityId: String!) {
     shareCount(activityId: $activityId)
+  }
+`
+
+const UPDATE_ACTIVITY = gql`
+  mutation UpdateActivity($activityId: String!, $title: String!, $description: String!) {
+    updateActivity(activityId: $activityId, title: $title, description: $description) {
+      _id
+    }
+  }
+`
+
+const DELETE_ACTIVITY = gql`
+  mutation DeleteActivity($activityId: String!) {
+    deleteActivity(activityId: $activityId) {
+      _id
+    }
   }
 `
 
@@ -106,10 +132,67 @@ const ReactionFormContainer = styled(Box)(({ theme }) => ({
   boxShadow: theme.shadows[3]
 }))
 
-const CardActivity = ({ activity, selectedActivity, setComments }) => {
+const CardActivity = ({ activity, selectedActivity, setComments, onUpdateActivityList }) => {
   const router = useRouter()
   const [linkCopied, setLinkCopied] = useState(false) // State to track if link is copied
   const [linkBoxVisible, setLinkBoxVisible] = useState(false) // State to track if link box is visible
+  const [menuAnchor, setMenuAnchor] = useState(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editedActivity, setEditedActivity] = useState({ ...activity })
+  const [commentFormVisible, setCommentFormVisible] = useState(false)
+  const [reactionFormVisible, setReactionFormVisible] = useState(false)
+  const [reactionListVisible, setReactionListVisible] = useState(false)
+  const [totalComments, setTotalComments] = useState(activity.totalComments || 0)
+  const [totalReactions, setTotalReactions] = useState(reactionData?.reactionsByActivity?.totalReactions || 0)
+
+  const handleMenuOpen = event => {
+    setMenuAnchor(event.currentTarget)
+  }
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null)
+  }
+
+  const handleEditClick = () => {
+    handleMenuClose()
+    setEditModalOpen(true)
+  }
+
+  const handleDeleteClick = async () => {
+    const { data } = await deleteActivity({
+      variables: {
+        activityId: activity._id
+      }
+    })
+    onUpdateActivityList(activity._id, 'delete', data.updateActivity)
+    handleMenuClose()
+  }
+
+  const handleEditModalClose = () => {
+    setEditModalOpen(false)
+  }
+
+  const handleEditSave = async () => {
+    try {
+      // Call the updateActivity mutation
+      const { data } = await updateActivity({
+        variables: {
+          activityId: editedActivity._id,
+          title: editedActivity.title,
+          description: editedActivity.description
+        }
+      })
+      onUpdateActivityList(editedActivity._id, 'edit', editedActivity)
+    } catch (error) {
+      // The onError callback will handle errors
+      console.error('Error updating activity:', error.message)
+    }
+
+    console.log('Saving edited activity:', editedActivity)
+
+    // Save logic here...
+    handleEditModalClose() // Close the modal after saving
+  }
 
   // Use useMutation hook to define updateShareCount function
   const [updateShareCount] = useMutation(UPDATE_SHARE_COUNT, {
@@ -117,6 +200,9 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
       console.error('Error updating share count:', error.message)
     }
   })
+
+  const [updateActivity] = useMutation(UPDATE_ACTIVITY)
+  const [deleteActivity] = useMutation(DELETE_ACTIVITY)
 
   const {
     loading: commentLoading,
@@ -148,7 +234,6 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
   console.log('shareCountData:', shareCountData)
 
   const totalShares = shareCountLoading ? 0 : shareCountData?.shareCount || 0
-  //
   const filteredComments = commentLoading ? [] : commentData?.commentsByActivity?.comments || []
 
   const handleAddComment = newComment => {
@@ -199,14 +284,9 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
     })
   }
 
-  const [commentFormVisible, setCommentFormVisible] = useState(false)
-  const [reactionFormVisible, setReactionFormVisible] = useState(false)
-  const [reactionListVisible, setReactionListVisible] = useState(false)
-  const [totalComments, setTotalComments] = useState(activity.totalComments || 0)
-  const [totalReactions, setTotalReactions] = useState(reactionData?.reactionsByActivity?.totalReactions || 0)
-
   const reactionListRef = useRef()
   const [isDarkMode, setIsDarkMode] = useState(false)
+
   const handleCommentButtonClick = () => {
     setCommentFormVisible(prevState => !prevState)
     setReactionFormVisible(false)
@@ -263,6 +343,7 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutsideReactionList)
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutsideReactionList)
     }
@@ -270,14 +351,100 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutsideLinkBox)
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutsideLinkBox)
     }
   }, [])
+  console.log(activity, '=')
 
   return (
     <StyledCard className={isDarkMode ? { filter: 'brightness(0.8)' } : {}}>
       <StyledCardContent>
+        <IconButton onClick={handleMenuOpen} sx={{ float: 'right' }}>
+          <MoreHorizIcon />
+        </IconButton>
+        <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
+          <MenuItem onClick={handleEditClick}>Edit</MenuItem>
+          <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
+        </Menu>
+        {/* Edit Popup */}
+        <Dialog open={editModalOpen} onClose={handleEditModalClose} maxWidth='sm' fullWidth>
+          <DialogTitle>Edit Activity</DialogTitle>
+          <DialogContent>
+            {/* Avatar and user information */}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5, position: 'relative' }}>
+              <Box sx={{ paddingTop: '8px' }}>
+                <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1 }} />
+              </Box>
+              <Box>
+                {/* You can make user information editable if needed */}
+                <Typography variant='body2' sx={{ color: 'text.primary', paddingTop: '10px', paddingBottom: '0px' }}>
+                  {editedActivity.userId}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Title and description */}
+            <TextField
+              label='Title'
+              fullWidth
+              value={editedActivity.title}
+              onChange={e => setEditedActivity({ ...editedActivity, title: e.target.value })}
+              sx={{ margin: '10px', pr: '10px' }}
+            />
+            <TextField
+              label='Description'
+              fullWidth
+              multiline
+              value={editedActivity.description}
+              onChange={e => setEditedActivity({ ...editedActivity, description: e.target.value })}
+              sx={{ margin: '10px', pr: '10px' }}
+            />
+
+            {/* Images */}
+            <Box sx={{ display: 'flex', flexDirection: 'row', overflowX: 'auto' }}>
+              {editedActivity.imgUrls &&
+                editedActivity.imgUrls.map((imgUrl, index) => (
+                  <img
+                    key={index}
+                    src={imgUrl}
+                    alt={`${editedActivity.userId}-${index}`}
+                    style={{
+                      margin: 0,
+                      width: '100%',
+                      height: '270px',
+                      marginRight: '1rem',
+                      marginBottom: '0.5rem',
+                      borderRadius: '25px',
+                      padding: '5px'
+                    }}
+                  />
+                ))}
+            </Box>
+
+            {/* Reactions, Comments, and Share Count */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                color: 'text.secondary',
+                marginTop: '10px',
+                marginLeft: '14px'
+              }}
+            ></Box>
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={handleEditModalClose} color='primary'>
+              Cancel
+            </Button>
+            <Button onClick={handleEditSave} color='primary'>
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5, position: 'relative' }}>
           <Box sx={{ paddingTop: '8px' }}>
             <Avatar alt='User Avatar' src='/images/avatars/4.png' sx={{ width: 32, height: 32, mr: 1 }} />
@@ -304,25 +471,31 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
             </Typography>
           </Box>
         </Box>
-
-        <img
-          src='/images/cards/Rectangle 45.png'
-          alt={activity.userId}
-          style={{
-            margin: 0,
-            width: '100%',
-            height: '270px',
-            marginBottom: '1.5rem',
-            borderRadius: '25px',
-            padding: '5px'
-          }}
-        />
+        <Box sx={{ display: 'flex', flexDirection: 'row', overflowX: 'auto' }}>
+          {activity.imgUrls &&
+            activity.imgUrls.map((imgUrl, index) => (
+              <img
+                key={index}
+                src={imgUrl}
+                alt={`${activity.userId}-${index}`}
+                style={{
+                  margin: 0,
+                  width: '100%',
+                  height: '270px',
+                  marginRight: '1rem', // Adjust the spacing between images
+                  marginBottom: '0.5rem',
+                  borderRadius: '25px',
+                  padding: '5px'
+                }}
+              />
+            ))}
+        </Box>
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
             color: 'text.secondary',
-            marginTop: '-20px',
+            marginTop: '10px',
             marginLeft: '14px'
           }}
         >
@@ -386,7 +559,6 @@ const CardActivity = ({ activity, selectedActivity, setComments }) => {
             <CommentForm onAddComment={handleAddComment} activityId={activity._id} userId='Manish Shrestha' />
           </div>
         )}
-
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5, position: 'relative' }}>
           {reactionListVisible && <ReactionList activityId={activity._id} userId='Manish Shrestha' />}
         </Box>

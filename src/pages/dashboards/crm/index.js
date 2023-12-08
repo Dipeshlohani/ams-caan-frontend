@@ -17,6 +17,8 @@ const GET_ACTIVITIES = gql`
       userId
       createdAt
       shareCount
+      imgUrls
+      files
     }
   }
 `
@@ -25,6 +27,20 @@ const CRMDashboard = () => {
   const [activities, setActivities] = useState([])
   const [comments, setComments] = useState([])
   const [selectedActivity, setSelectedActivity] = useState(null)
+
+  const updateActivityList = (activityId, action, updatedActivity) => {
+    // Perform the necessary action (delete or edit) and update the state
+    if (action === 'delete') {
+      setActivities(prevActivities => prevActivities.filter(activity => activity._id !== activityId))
+    } else if (action === 'edit') {
+      // Fetch the updated activity from your data source
+      // and update the state with the new data
+      // For example, if you have an updatedActivity object, you can do:
+      setActivities(prevActivities =>
+        prevActivities.map(activity => (activity._id === activityId ? updatedActivity : activity))
+      )
+    }
+  }
 
   useEffect(() => {
     // Fetch activities
@@ -51,12 +67,13 @@ const CRMDashboard = () => {
         </Grid>
 
         {/* Display activities */}
-        {activities.map(activity => (
-          <Grid key={activity._id} item xs={12}>
-            {console.log('Comments:', comments)}
-            {console.log('Activity ID:', activity._id)}
+        {activities.map((activity, index) => (
+          <Grid key={index} item xs={12}>
             <CardActivity
               activity={activity}
+              onUpdateActivityList={(activityId, action, editedActivity) =>
+                updateActivityList(activityId, action, editedActivity)
+              }
               comments={comments}
               setComments={setComments}
               onClick={() => {
