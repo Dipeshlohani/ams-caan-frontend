@@ -22,10 +22,16 @@ const GET_ACTIVITIES = gql`
 `
 
 const CRMDashboard = () => {
+  const [user, setUser] = useState({})
   const [activities, setActivities] = useState([])
   const [comments, setComments] = useState([])
   const [selectedActivity, setSelectedActivity] = useState(null)
 
+  
+
+  useEffect(() => {
+    console.log(localStorage.getItem('userData'))
+  }, [])
   useEffect(() => {
     // Fetch activities
     client
