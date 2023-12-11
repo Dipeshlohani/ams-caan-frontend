@@ -6,7 +6,6 @@ import CommentForm from '../../components/activity/CommentForm'
 import { gql } from '@apollo/react-hooks'
 import client from '../../../../apollo-client'
 import ActivityForm from '../../components/activity/ActivityForm'
-import { formatDistanceToNow } from 'date-fns'
 
 const GET_ACTIVITIES = gql`
   {
@@ -47,15 +46,19 @@ const CRMDashboard = () => {
     client
       .query({ query: GET_ACTIVITIES })
       .then(result => {
-        console.log('Fetched activities:', result.data.activities)
         setActivities(result.data.activities)
       })
       .catch(error => console.error('Apollo Client Error:', error))
-  }, [])
+  }, [setActivities])
 
   const handleAddActivity = newActivity => {
     // Add the new activity to the beginning of the array
     setActivities(prevActivities => [newActivity, ...prevActivities])
+
+    // If there is no selected activity, set the newly added activity as the selected one
+    if (!selectedActivity) {
+      setSelectedActivity(newActivity)
+    }
   }
 
   return (

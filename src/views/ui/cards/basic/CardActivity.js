@@ -29,6 +29,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
+import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 
 // Define your GraphQL query for comments
 const GET_COMMENTS = gql`
@@ -138,7 +139,7 @@ const CardActivity = ({ activity, selectedActivity, setComments, onUpdateActivit
   const [linkBoxVisible, setLinkBoxVisible] = useState(false) // State to track if link box is visible
   const [menuAnchor, setMenuAnchor] = useState(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editedActivity, setEditedActivity] = useState({ ...activity })
+  const [editedActivity, setEditedActivity] = useState({})
   const [commentFormVisible, setCommentFormVisible] = useState(false)
   const [reactionFormVisible, setReactionFormVisible] = useState(false)
   const [reactionListVisible, setReactionListVisible] = useState(false)
@@ -154,6 +155,7 @@ const CardActivity = ({ activity, selectedActivity, setComments, onUpdateActivit
   }
 
   const handleEditClick = () => {
+    setEditedActivity(activity)
     handleMenuClose()
     setEditModalOpen(true)
   }
@@ -169,6 +171,7 @@ const CardActivity = ({ activity, selectedActivity, setComments, onUpdateActivit
   }
 
   const handleEditModalClose = () => {
+    setEditedActivity({ ...activity }) // Reset editedActivity to the current activity
     setEditModalOpen(false)
   }
 
@@ -228,11 +231,6 @@ const CardActivity = ({ activity, selectedActivity, setComments, onUpdateActivit
   } = useQuery(GET_SHARE_COUNT, {
     variables: { activityId: activity._id }
   })
-
-  console.log('shareCountLoading:', shareCountLoading)
-  console.log('shareCountError:', shareCountError)
-  console.log('shareCountData:', shareCountData)
-
   const totalShares = shareCountLoading ? 0 : shareCountData?.shareCount || 0
   const filteredComments = commentLoading ? [] : commentData?.commentsByActivity?.comments || []
 
@@ -327,7 +325,28 @@ const CardActivity = ({ activity, selectedActivity, setComments, onUpdateActivit
     }
   }
 
-  console.log('shareCountData:', shareCountData)
+  const handleDeleteImage = index => {
+    setEditedActivity(prev => {
+      const newImages = [...prev.imgUrls]
+      newImages.splice(index, 1)
+
+      return { ...prev, imgUrls: newImages }
+    })
+  }
+
+  const handleImageUpload = e => {
+    const file = e.target.files[0]
+    if (file) {
+      // Assuming you have a function to handle image upload and get a URL
+      uploadImage(file).then(imageUrl => {
+        setEditedActivity(prev => {
+          const newImages = [...prev.imgUrls, imageUrl]
+
+          return { ...prev, imgUrls: newImages }
+        })
+      })
+    }
+  }
 
   useEffect(() => {
     if (!commentLoading && commentData) {
@@ -356,7 +375,6 @@ const CardActivity = ({ activity, selectedActivity, setComments, onUpdateActivit
       document.removeEventListener('mousedown', handleClickOutsideLinkBox)
     }
   }, [])
-  console.log(activity, '=')
 
   return (
     <StyledCard className={isDarkMode ? { filter: 'brightness(0.8)' } : {}}>
@@ -406,33 +424,34 @@ const CardActivity = ({ activity, selectedActivity, setComments, onUpdateActivit
             <Box sx={{ display: 'flex', flexDirection: 'row', overflowX: 'auto' }}>
               {editedActivity.imgUrls &&
                 editedActivity.imgUrls.map((imgUrl, index) => (
-                  <img
-                    key={index}
-                    src={imgUrl}
-                    alt={`${editedActivity.userId}-${index}`}
-                    style={{
-                      margin: 0,
-                      width: '100%',
-                      height: '270px',
-                      marginRight: '1rem',
-                      marginBottom: '0.5rem',
-                      borderRadius: '25px',
-                      padding: '5px'
-                    }}
-                  />
+                  <div key={index} style={{ position: 'relative', marginRight: '1rem', minWidth: '250px' }}>
+                    <img
+                      key={index}
+                      src={imgUrl}
+                      alt={`${editedActivity.userId}-${index}`}
+                      style={{
+                        margin: 0,
+                        width: '100%',
+                        height: '270px',
+                        marginRight: '1rem',
+                        marginBottom: '0.5rem',
+                        borderRadius: '25px',
+                        padding: '5px'
+                      }}
+                    />
+                    {/* Add a delete button for each image */}
+                    <IconButton
+                      size='small'
+                      style={{ position: 'absolute', top: '5px', right: '5px', backgroundColor: 'white' }}
+                      onClick={() => handleDeleteImage(index)}
+                    >
+                      <HighlightOffIcon />
+                    </IconButton>
+                  </div>
                 ))}
+              {/* Add a button to upload new images */}
+              <input type='file' accept='image/*' onChange={handleImageUpload} />
             </Box>
-
-            {/* Reactions, Comments, and Share Count */}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                color: 'text.secondary',
-                marginTop: '10px',
-                marginLeft: '14px'
-              }}
-            ></Box>
           </DialogContent>
 
           <DialogActions>
