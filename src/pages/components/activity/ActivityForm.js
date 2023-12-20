@@ -80,7 +80,7 @@ const ActivityForm = ({ onAddActivity, onHideForm }) => {
     if (response.ok) {
       const result = await response.json()
 
-      return result.map(res => res.relativePath)
+      return result.map(res => res.path)
     } else {
       console.error(`${endpoint} upload failed`)
 
