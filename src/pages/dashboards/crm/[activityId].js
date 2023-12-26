@@ -1,25 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react'
-import Paper from '@mui/material/Paper'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import Avatar from '@mui/material/Avatar'
-import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
-import IconButton from '@mui/material/IconButton'
-import { styled } from '@mui/system'
-import FavoriteIcon from '@mui/icons-material/Favorite'
-import CommentIcon from '@mui/icons-material/ModeCommentOutlined'
-import ShareIcon from '@mui/icons-material/Share'
-import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined'
-import CommentForm from '../../components/activity/CommentForm'
-import ReactionForm from '../../components/activity/ReactionComponent'
-import ReactionList from '../../components/activity/ReactionList'
-import { useQuery } from '@apollo/react-hooks'
-import { gql } from '@apollo/client'
-import { formatDistanceToNow } from 'date-fns'
-import { useRouter } from 'next/router'
-import Snackbar from '@mui/material/Snackbar'
-import MuiAlert from '@mui/material/Alert'
+import React, { useState, useRef, useEffect } from 'react';
+import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import Avatar from '@mui/material/Avatar';
+import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
+import IconButton from '@mui/material/IconButton';
+import { styled } from '@mui/system';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import CommentIcon from '@mui/icons-material/ModeCommentOutlined';
+import ShareIcon from '@mui/icons-material/Share';
+import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined';
+import CommentForm from '../../components/activity/CommentForm';
+import ReactionForm from '../../components/activity/ReactionComponent';
+import ReactionList from '../../components/activity/ReactionList';
+import { useQuery } from '@apollo/react-hooks';
+import { gql } from '@apollo/client';
+import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/router';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 
 // Define your GraphQL query for a single activity
 const GET_ACTIVITY = gql`
@@ -33,7 +33,7 @@ const GET_ACTIVITY = gql`
       shareCount
     }
   }
-`
+`;
 
 // Define your GraphQL query for comments
 const GET_COMMENTS = gql`
@@ -48,7 +48,7 @@ const GET_COMMENTS = gql`
       totalComments
     }
   }
-`
+`;
 
 // Define your GraphQL query for reactions
 const GET_REACTIONS = gql`
@@ -63,7 +63,7 @@ const GET_REACTIONS = gql`
       totalReactions
     }
   }
-`
+`;
 
 const PaperBox = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -75,8 +75,8 @@ const PaperBox = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'space-between',
   marginTop: '90px',
-  marginLeft: '0px'
-}))
+  marginLeft: '0px',
+}));
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -86,16 +86,16 @@ const StyledCard = styled(Card)(({ theme }) => ({
   width: '600px',
   margin: 'auto',
   '&:hover': {
-    boxShadow: theme.shadows[6]
-  }
-}))
+    boxShadow: theme.shadows[6],
+  },
+}));
 
 const StyledCardContent = styled(CardContent)(({ theme }) => ({
   padding: theme.spacing(2),
   '&:last-child': {
-    paddingBottom: theme.spacing(2)
-  }
-}))
+    paddingBottom: theme.spacing(2),
+  },
+}));
 
 const ReactionFormContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
@@ -104,133 +104,154 @@ const ReactionFormContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   padding: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
-  boxShadow: theme.shadows[3]
-}))
+  boxShadow: theme.shadows[3],
+}));
 
 const ActivityDetailPage = () => {
-  const router = useRouter()
-  const { activityId } = router.query
-  const [linkVisible, setLinkVisible] = useState(false)
-  const [linkCopied, setLinkCopied] = useState(false)
+  const router = useRouter();
+  const { activityId } = router.query;
+  const [linkVisible, setLinkVisible] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [tinyUrl, setTinyUrl] = useState('');
 
-  const handleClickOutsideLinkBox = event => {
-    const linkBox = document.getElementById('linkBox')
+  const handleClickOutsideLinkBox = (event) => {
+    const linkBox = document.getElementById('linkBox');
 
     // Check if the click is outside the link box
     if (linkBox && !linkBox.contains(event.target)) {
-      setLinkVisible(false)
+      setLinkVisible(false);
     }
-  }
+  };
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutsideLinkBox)
+    document.addEventListener('mousedown', handleClickOutsideLinkBox);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutsideLinkBox)
-    }
-  }, [])
+      document.removeEventListener('mousedown', handleClickOutsideLinkBox);
+    };
+  }, []);
 
   // Fetch activity details
   const {
     loading: activityLoading,
     error: activityError,
-    data: activityData
+    data: activityData,
   } = useQuery(GET_ACTIVITY, {
-    variables: { activityId }
-  })
+    variables: { activityId },
+  });
 
   // Fetch comments
   const {
     loading: commentLoading,
     error: commentError,
-    data: commentData
+    data: commentData,
   } = useQuery(GET_COMMENTS, {
-    variables: { activityId }
-  })
+    variables: { activityId },
+  });
 
   // Fetch reactions
   const {
     loading: reactionLoading,
     error: reactionError,
-    data: reactionData
+    data: reactionData,
   } = useQuery(GET_REACTIONS, {
-    variables: { activityId }
-  })
+    variables: { activityId },
+  });
 
-  console.log('Activity ID:', activityId)
-  console.log('Comment Data:', commentData)
-  console.log('Reaction Data:', reactionData)
+  console.log('Activity ID:', activityId);
+  console.log('Comment Data:', commentData);
+  console.log('Reaction Data:', reactionData);
 
-  const [commentFormVisible, setCommentFormVisible] = useState(false)
-  const [reactionFormVisible, setReactionFormVisible] = useState(false)
-  const [reactionListVisible, setReactionListVisible] = useState(false)
-  if (activityLoading || commentLoading || reactionLoading) return <p>Loading...</p>
-  if (activityError) return <p>Error: {activityError.message}</p>
-  if (!activityData?.activity) return <p>Activity not found or loading...</p>
-  if (!commentData?.commentsByActivity) return <p>Error loading comments</p>
-  if (!reactionData?.reactionsByActivity) return <p>Error loading reactions</p>
+  const [commentFormVisible, setCommentFormVisible] = useState(false);
+  const [reactionFormVisible, setReactionFormVisible] = useState(false);
+  const [reactionListVisible, setReactionListVisible] = useState(false);
 
-  const activity = activityData.activity
-  const comments = commentData?.commentsByActivity?.comments || []
-  const totalComments = commentData?.commentsByActivity?.totalComments || 0
-  const reactions = reactionData?.reactionsByActivity?.reactions || []
-  const totalReactions = reactionData?.reactionsByActivity?.totalReactions || 0
+  if (activityLoading || commentLoading || reactionLoading) return <p>Loading...</p>;
+  if (activityError) return <p>Error: {activityError.message}</p>;
+  if (!activityData?.activity) return <p>Activity not found or loading...</p>;
+  if (!commentData?.commentsByActivity) return <p>Error loading comments</p>;
+  if (!reactionData?.reactionsByActivity) return <p>Error loading reactions</p>;
+
+  const activity = activityData.activity;
+  const comments = commentData?.commentsByActivity?.comments || [];
+  const totalComments = commentData?.commentsByActivity?.totalComments || 0;
+  const reactions = reactionData?.reactionsByActivity?.reactions || [];
+  const totalReactions = reactionData?.reactionsByActivity?.totalReactions || 0;
 
   const handleCommentButtonClick = () => {
-    setCommentFormVisible(prevState => !prevState)
-    setReactionFormVisible(false)
-    setReactionListVisible(false)
-  }
+    setCommentFormVisible((prevState) => !prevState);
+    setReactionFormVisible(false);
+    setReactionListVisible(false);
+  };
 
   const handleReactionButtonClick = () => {
-    setReactionFormVisible(prevState => !prevState)
-    setCommentFormVisible(false)
-    setReactionListVisible(prevState => !prevState)
-  }
+    setReactionFormVisible((prevState) => !prevState);
+    setCommentFormVisible(false);
+    setReactionListVisible((prevState) => !prevState);
+  };
 
-  const handleShareButtonClick = () => {
-    // Show the link box
-    setLinkVisible(true)
+  const handleShareButtonClick = async () => {
+    // Generate TinyURL
+    await generateTinyUrl();
 
-    // Hide the link box after a short delay (e.g., 3 seconds)
-    setTimeout(() => {
-      setLinkVisible(false)
-      setLinkCopied(false)
-    }, 3000)
-  }
-
+    // Copy the link to the clipboard
+    if (tinyUrl) {
+      navigator.clipboard.writeText(tinyUrl).then(
+        () => {
+          // Show Snackbar with the "Link copied to clipboard" message
+          setLinkCopied(true);
+        },
+        (error) => {
+          console.error('Error copying URL to clipboard:', error.message);
+        }
+      );
+    }
+  };
   const handleCopyButtonClick = () => {
-    const activityId = activity._id
-    const shareableLink = `${window.location.origin}/dashboards/crm/${activityId}`
+    if (tinyUrl) {
+      navigator.clipboard.writeText(tinyUrl).then(
+        () => {
+          setLinkCopied(true);
+        },
+        (error) => {
+          console.error('Error copying URL to clipboard:', error.message);
+        }
+      );
+    }
+  };
 
-    // Create a temporary input element
-    const input = document.createElement('input')
-    input.value = shareableLink
-    document.body.appendChild(input)
-    input.select()
+  const generateTinyUrl = async () => {
+    if (!activity) {
+      console.error('Error: Activity details not available.');
+      return;
+    }
+
+    const currentUrl = `${window.location.origin}/dashboards/crm/${activityId}`;
 
     try {
-      // Copy the link to the clipboard
-      document.execCommand('copy')
-      setLinkCopied(true)
-    } catch (err) {
-      console.error('Unable to copy link to clipboard', err)
-    } finally {
-      // Remove the temporary input element
-      document.body.removeChild(input)
-    }
-  }
+      const response = await fetch(`http://tinyurl.com/api-create.php?url=${currentUrl}`);
 
-  const handleAddReaction = newReaction => {
-    console.log('New reaction:', newReaction)
-  }
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.text();
+      setTinyUrl(data);
+    } catch (error) {
+      console.error('Error shortening URL:', error.message);
+    }
+  };
+
+  const handleAddReaction = (newReaction) => {
+    console.log('New reaction:', newReaction);
+  };
 
   const handleMouseEnter = () => {
-    setReactionFormVisible(true)
-  }
+    setReactionFormVisible(true);
+  };
 
   const handleMouseLeave = () => {
-    setReactionFormVisible(false)
-  }
+    setReactionFormVisible(false);
+  };
 
   return (
     <Card
@@ -242,8 +263,8 @@ const ActivityDetailPage = () => {
         width: '600px',
         margin: 'auto',
         '&:hover': {
-          boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)'
-        }
+          boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)',
+        },
       }}
     >
       <CardContent>
@@ -252,7 +273,7 @@ const ActivityDetailPage = () => {
             display: 'flex',
             alignItems: 'flex-start',
             mb: 1.5,
-            position: 'relative'
+            position: 'relative',
           }}
         >
           <Box sx={{ paddingTop: '8px' }}>
@@ -268,7 +289,7 @@ const ActivityDetailPage = () => {
                 color: 'text.secondary',
                 fontSize: '0.7rem',
                 position: 'absolute',
-                marginTop: '-5px'
+                marginTop: '-5px',
               }}
             >
               {activity.createdAt && !isNaN(new Date(activity.createdAt).getTime()) && (
@@ -293,7 +314,7 @@ const ActivityDetailPage = () => {
             height: '270px',
             marginBottom: '1.5rem',
             borderRadius: '25px',
-            padding: '5px'
+            padding: '5px',
           }}
         />
         <Box
@@ -302,7 +323,7 @@ const ActivityDetailPage = () => {
             alignItems: 'center',
             color: 'text.secondary',
             marginTop: '-20px',
-            marginLeft: '14px'
+            marginLeft: '14px',
           }}
         >
           <IconButton size='small' onClick={handleReactionButtonClick}>
@@ -334,7 +355,7 @@ const ActivityDetailPage = () => {
           {/* PaperBox for link display and copy button */}
           {linkVisible && (
             <PaperBox id='linkBox'>
-              <Typography variant='body2'>{`${window.location.origin}/dashboards/crm/${activity._id}`}</Typography>
+              <Typography variant='body2'>{tinyUrl}</Typography>
               <IconButton size='small' onClick={handleCopyButtonClick}>
                 <FileCopyOutlinedIcon />
               </IconButton>
@@ -350,32 +371,11 @@ const ActivityDetailPage = () => {
           </MuiAlert>
         </Snackbar>
 
-        {/* PaperBox for link display and copy button */}
-        {/* {linkVisible && (
-          <PaperBox>
-            <Typography variant='body2'>{`${window.location.origin}/dashboards/crm/${activity._id}`}</Typography>
-            <IconButton size='small' onClick={handleCopyButtonClick}>
-              <FileCopyOutlinedIcon />
-            </IconButton>
-          </PaperBox>
-        )}
-
-        <Snackbar open={linkVisible} autoHideDuration={6000} onClose={() => setLinkVisible(false)}>
-          <MuiAlert
-            elevation={6}
-            variant='filled'
-            onClose={() => setLinkVisible(false)}
-            severity={linkCopied ? 'success' : 'info'}
-          >
-            {linkCopied ? 'Link copied to clipboard!' : `Shareable link: ${window.location.href}`}
-          </MuiAlert>
-        </Snackbar> */}
-
         {commentFormVisible && (
           <CommentForm
             onAddComment={(newComment, newTotalComments) => {
               // You can perform any additional logic here if needed
-              setTotalComments(newTotalComments)
+              setTotalComments(newTotalComments);
             }}
             activityId={activity._id}
             userId='Manish Shrestha'
@@ -386,7 +386,6 @@ const ActivityDetailPage = () => {
         {reactionListVisible && <ReactionList activityId={activity._id} userId='Manish Shrestha' />}
       </CardContent>
     </Card>
-  )
-}
-
-export default ActivityDetailPage
+  );
+};
+export default ActivityDetailPage;

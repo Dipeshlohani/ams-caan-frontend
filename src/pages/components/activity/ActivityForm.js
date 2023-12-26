@@ -31,6 +31,8 @@ const CREATE_ACTIVITY = gql`
       description
       userId
       imgUrls
+      _id
+      files
     }
   }
 `
@@ -97,7 +99,6 @@ const ActivityForm = ({ onAddActivity, onHideForm }) => {
       if (files.length > 0) {
         fileUrls = await uploadFiles(files, 'file', 'fileFolder')
       }
-      console.log(fileUrls, '---fileURLS---')
 
       const { data } = await createActivity({
         variables: { title, description, userId, imgUrls: imageUrls, files: fileUrls }
@@ -148,9 +149,6 @@ const ActivityForm = ({ onAddActivity, onHideForm }) => {
             />
 
             {/* Image Upload Section */}
-            {/* <Typography variant='h9' style={{ marginTop: '20px' }}>
-              Upload Images
-            </Typography> */}
             <input
               id='upload-images'
               type='file'

@@ -11,7 +11,7 @@
     "format": "prettier --write \"src/**/*.{js,jsx}\""
   },
   "dependencies": {
-    "@apollo/client": "^3.8.7",
+    "@apollo/client": "^3.8.8",
     "@apollo/react-hooks": "^4.0.0",
     "@auth0/auth0-react": "1.10.1",
     "@aws-amplify/auth": "4.5.3",
@@ -32,9 +32,9 @@
     "@fullcalendar/react": "5.10.1",
     "@fullcalendar/timegrid": "5.10.1",
     "@hookform/resolvers": "2.4.0",
-    "@mui/icons-material": "^5.14.18",
+    "@mui/icons-material": "^5.15.0",
     "@mui/lab": "5.0.0-alpha.80",
-    "@mui/material": "5.6.4",
+    "@mui/material": "^5.6.4",
     "@mui/x-data-grid": "5.10.0",
     "@popperjs/core": "2.11.2",
     "@reduxjs/toolkit": "1.8.1",
@@ -50,6 +50,7 @@
     "cleave.js": "1.6.0",
     "clipboard-copy": "4.0.1",
     "clsx": "1.1.1",
+    "copy-to-clipboard": "^3.3.3",
     "date-fns": "^2.30.0",
     "draft-js": "0.11.7",
     "firebase": "9.7.0",
@@ -61,13 +62,14 @@
     "jsonwebtoken": "8.5.1",
     "keen-slider": "6.6.14",
     "mdi-material-ui": "7.1.0",
-    "next": "12.1.6",
+    "next": "^12.1.6",
     "nprogress": "0.2.0",
     "payment": "2.4.6",
     "prismjs": "1.25.0",
     "react": "18.1.0",
     "react-apexcharts": "1.3.9",
     "react-chartjs-2": "4.1.0",
+    "react-copy-to-clipboard": "^5.1.0",
     "react-credit-cards": "0.8.3",
     "react-datepicker": "4.5.0",
     "react-dom": "18.1.0",
@@ -83,6 +85,7 @@
     "recharts": "2.1.6",
     "stylis": "4.0.10",
     "stylis-plugin-rtl": "2.1.1",
+    "uuid": "^9.0.1",
     "yup": "0.32.9"
   },
   "devDependencies": {
@@ -92,7 +95,7 @@
     "eslint-import-resolver-alias": "1.1.2",
     "eslint-import-resolver-typescript": "2.5.0",
     "eslint-plugin-import": "2.25.4",
-    "next-transpile-modules": "9.0.0",
+    "next-transpile-modules": "^10.0.1",
     "prettier": "2.6.2"
   }
 }
