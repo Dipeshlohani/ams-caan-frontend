@@ -83,7 +83,6 @@ const CardActivity = ({ activity }) => {
       );
     }
   };
-
   const handleOpenCopiedUrl = () => {
     router.push(`/dashboards/crm/`);
   };

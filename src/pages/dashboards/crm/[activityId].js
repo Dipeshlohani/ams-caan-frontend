@@ -20,7 +20,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/router';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
-
+import { useMutation } from '@apollo/client';
 // Define your GraphQL query for a single activity
 const GET_ACTIVITY = gql`
   query GetActivity($activityId: String!) {
@@ -30,6 +30,14 @@ const GET_ACTIVITY = gql`
       title
       description
       createdAt
+      shareCount
+    }
+  }
+`;
+const UPDATE_SHARE_COUNT = gql`
+  mutation UpdateShareCount($activityId: String!) {
+    updateShareCount(activityId: $activityId) {
+      _id
       shareCount
     }
   }
@@ -49,6 +57,7 @@ const GET_COMMENTS = gql`
     }
   }
 `;
+
 
 // Define your GraphQL query for reactions
 const GET_REACTIONS = gql`
@@ -113,6 +122,33 @@ const ActivityDetailPage = () => {
   const [linkVisible, setLinkVisible] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [tinyUrl, setTinyUrl] = useState('');
+  const [updateShareCountMutation] = useMutation(UPDATE_SHARE_COUNT);
+  useEffect(() => {
+    // Make sure activityId is available before calling the mutation
+    if (activityId) {
+      // Call the function to update the share count
+      updateShareCount();
+    }
+  }, [activityId]);
+
+  const updateShareCount = async () => {
+    try {
+      // Call the GraphQL mutation to update the share count
+      const { data } = await updateShareCountMutation({
+        variables: { activityId },
+      });
+
+      // Check the response if needed
+      if (data && data.updateShareCount) {
+        // Optionally, you might want to update the local state
+        // based on the response from the server
+        console.log('Share count updated:', data.updateShareCount.shareCount);
+      }
+    } catch (error) {
+      console.error('Error updating share count:', error.message);
+    }
+  };
+
 
   const handleClickOutsideLinkBox = (event) => {
     const linkBox = document.getElementById('linkBox');
@@ -177,6 +213,10 @@ const ActivityDetailPage = () => {
   const reactions = reactionData?.reactionsByActivity?.reactions || [];
   const totalReactions = reactionData?.reactionsByActivity?.totalReactions || 0;
 
+
+
+
+
   const handleCommentButtonClick = () => {
     setCommentFormVisible((prevState) => !prevState);
     setReactionFormVisible(false);
@@ -195,17 +235,19 @@ const ActivityDetailPage = () => {
 
     // Copy the link to the clipboard
     if (tinyUrl) {
-      navigator.clipboard.writeText(tinyUrl).then(
-        () => {
-          // Show Snackbar with the "Link copied to clipboard" message
-          setLinkCopied(true);
-        },
-        (error) => {
-          console.error('Error copying URL to clipboard:', error.message);
-        }
-      );
+      try {
+        await navigator.clipboard.writeText(tinyUrl);
+        // Update the share count in the database
+        // Show Snackbar with the "Link copied to clipboard" message
+        setLinkCopied(true);
+      } catch (error) {
+        console.error('Error copying URL to clipboard:', error.message);
+      }
     }
   };
+
+
+
   const handleCopyButtonClick = () => {
     if (tinyUrl) {
       navigator.clipboard.writeText(tinyUrl).then(
@@ -382,7 +424,6 @@ const ActivityDetailPage = () => {
             totalComments={totalComments}
           />
         )}
-
         {reactionListVisible && <ReactionList activityId={activity._id} userId='Manish Shrestha' />}
       </CardContent>
     </Card>
